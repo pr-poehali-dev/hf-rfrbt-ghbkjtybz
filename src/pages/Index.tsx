@@ -146,6 +146,7 @@ export default function Index() {
   const [selectedPhoto, setSelectedPhoto] = useState<number | null>(null);
   const [shaking, setShaking] = useState(false);
   const [showUpload, setShowUpload] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -159,7 +160,8 @@ export default function Index() {
       const audio = new Audio(MUSIC_URL);
       audio.volume = 0.75;
       audioRef.current = audio;
-      audio.play().catch(() => {});
+      audio.play().then(() => setIsPlaying(true)).catch(() => {});
+      audio.onended = () => setIsPlaying(false);
     }
     photos.forEach((_, i) => {
       setTimeout(() => setVisiblePhotos((prev) => [...prev, i]), 350 + i * 180);
@@ -181,6 +183,7 @@ export default function Index() {
       }, 80);
       audioRef.current = null;
     }
+    setIsPlaying(false);
   };
 
   const handleFiles = (files: FileList | null) => {
@@ -213,6 +216,17 @@ export default function Index() {
     }
   };
 
+  const handleToggleMusic = () => {
+    if (!audioRef.current) return;
+    if (isPlaying) {
+      audioRef.current.pause();
+      setIsPlaying(false);
+    } else {
+      audioRef.current.play().catch(() => {});
+      setIsPlaying(true);
+    }
+  };
+
   const fanPositions = getFanPositions(photos.length);
 
   return (
@@ -231,6 +245,20 @@ export default function Index() {
           </div>
         ))}
       </div>
+
+      {/* Music control — появляется после открытия */}
+      {opened && (
+        <button className="music-btn" onClick={handleToggleMusic} title={isPlaying ? "Пауза" : "Играть"}>
+          <span className={`music-icon${isPlaying ? " music-playing" : ""}`}>
+            {isPlaying ? "♫" : "♪"}
+          </span>
+          {isPlaying && (
+            <span className="music-bars">
+              <span /><span /><span /><span />
+            </span>
+          )}
+        </button>
+      )}
 
       {/* Title */}
       <p className="gift-title mb-6 text-center px-4">
