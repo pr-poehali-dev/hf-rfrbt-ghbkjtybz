@@ -22,6 +22,8 @@ export default {
 			fontFamily: {
 				'oswald': ['Oswald', 'sans-serif'],
 				'golos': ['Golos Text', 'sans-serif'],
+				'caveat': ['Caveat', 'cursive'],
+				'cormorant': ['Cormorant', 'serif'],
 			},
 			colors: {
 				border: 'hsl(var(--border))',
