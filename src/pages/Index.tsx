@@ -149,7 +149,7 @@ export default function Index() {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const MUSIC_URL = ""; // будет подставлена ссылка на песню
+  const MUSIC_URL = "https://cdn.poehali.dev/projects/d16ae21f-f210-4a6c-a55c-d3151bda89a5/bucket/4ccf70ff-861f-4fd6-a45d-007aa1b6f91a.mp3";
 
   const handleOpen = () => {
     if (opened) return;
@@ -173,7 +173,14 @@ export default function Index() {
 
   const handleReset = () => {
     setOpened(false); setVisiblePhotos([]); setSelectedPhoto(null); setConfetti(false);
-    if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
+    if (audioRef.current) {
+      const audio = audioRef.current;
+      const fadeOut = setInterval(() => {
+        if (audio.volume > 0.05) { audio.volume -= 0.05; }
+        else { audio.pause(); clearInterval(fadeOut); }
+      }, 80);
+      audioRef.current = null;
+    }
   };
 
   const handleFiles = (files: FileList | null) => {
