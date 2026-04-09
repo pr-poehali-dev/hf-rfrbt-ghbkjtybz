@@ -11,6 +11,7 @@ const DEFAULT_PHOTOS = [
   { src: "https://cdn.poehali.dev/projects/d16ae21f-f210-4a6c-a55c-d3151bda89a5/bucket/2a98fe9f-d6f2-4b11-a4cc-d9f7d9e9357e.jpg", rotate: -3, fileName: "photo5.jpg" },
   { src: "https://cdn.poehali.dev/projects/d16ae21f-f210-4a6c-a55c-d3151bda89a5/bucket/b76ef4e0-8005-465a-8ffc-b1e70634f560.jpg", rotate: 6, fileName: "photo6.jpg" },
   { src: "https://cdn.poehali.dev/projects/d16ae21f-f210-4a6c-a55c-d3151bda89a5/bucket/6d7b8cca-3fae-4f39-bac8-2d18460c24c4.jpg", rotate: -5, fileName: "photo7.jpg" },
+  { src: "https://cdn.poehali.dev/projects/d16ae21f-f210-4a6c-a55c-d3151bda89a5/bucket/40272bd3-65c1-4413-b4d8-ffe4b8284889.jpg", rotate: 9, fileName: "photo8.jpg" },
 ];
 
 interface PhotoItem {
