@@ -143,6 +143,7 @@ export default function Index() {
   const [shaking, setShaking] = useState(false);
   const [showUpload, setShowUpload] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [boxHidden, setBoxHidden] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -159,10 +160,12 @@ export default function Index() {
       audio.play().then(() => setIsPlaying(true)).catch(() => {});
       audio.onended = () => setIsPlaying(false);
     }
-    // Первое фото появляется сразу, остальные через 5 секунд
+    // Первое фото — крупное, по центру
     setTimeout(() => setVisiblePhotos([0]), 350);
+    // Через 5 сек коробка исчезает и вылетают остальные фото
+    setTimeout(() => setBoxHidden(true), 5000);
     photos.slice(1).forEach((_, i) => {
-      setTimeout(() => setVisiblePhotos((prev) => [...prev, i + 1]), 5000 + i * 180);
+      setTimeout(() => setVisiblePhotos((prev) => [...prev, i + 1]), 5200 + i * 180);
     });
     setTimeout(() => setConfetti(false), 3500);
   };
@@ -172,7 +175,7 @@ export default function Index() {
   };
 
   const handleReset = () => {
-    setOpened(false); setVisiblePhotos([]); setSelectedPhoto(null); setConfetti(false);
+    setOpened(false); setVisiblePhotos([]); setSelectedPhoto(null); setConfetti(false); setBoxHidden(false);
     if (audioRef.current) {
       const audio = audioRef.current;
       const fadeOut = setInterval(() => {
@@ -225,7 +228,8 @@ export default function Index() {
     }
   };
 
-  const fanPositions = getFanPositions(photos.length);
+  // Позиции для фото 1-9 (без первого) когда коробка исчезла
+  const fanPositions = getFanPositions(photos.length - 1);
 
   return (
     <div className="gift-bg min-h-screen flex flex-col items-center justify-center overflow-hidden relative py-8">
@@ -303,13 +307,32 @@ export default function Index() {
       )}
 
       {/* Scene */}
-      <div className="scene-wrap">
-        {/* Flying photos */}
-        {photos.map((photo, i) => {
-          const isVisible = visiblePhotos.includes(i);
-          const pos = fanPositions[i] ?? { x: 0, y: -180 };
+      <div className={`scene-wrap${boxHidden ? " scene-expanded" : ""}`}>
+
+        {/* Первое фото — крупная заставка по центру */}
+        {visiblePhotos.includes(0) && (
+          <div
+            className="photo-hero"
+            style={{
+              opacity: boxHidden ? 0 : 1,
+              transform: boxHidden ? "translate(-50%, -50%) scale(0.3)" : "translate(-50%, -50%) scale(1)",
+              transition: "all 0.6s cubic-bezier(0.34,1.2,0.64,1)",
+              pointerEvents: boxHidden ? "none" : "auto",
+            }}
+            onClick={() => !boxHidden && setSelectedPhoto(0)}
+          >
+            <div className="polaroid">
+              <img src={photos[0].src} alt="" className="polaroid-img" draggable={false} />
+            </div>
+          </div>
+        )}
+
+        {/* Остальные фото — веер после исчезновения коробки */}
+        {photos.slice(1).map((photo, i) => {
+          const isVisible = visiblePhotos.includes(i + 1);
+          const pos = fanPositions[i] ?? { x: 0, y: -150 };
           return (
-            <div key={i} className="photo-fly"
+            <div key={i + 1} className="photo-fly"
               style={{
                 transform: isVisible
                   ? `translate(calc(-50% + ${pos.x}px), calc(-50% + ${pos.y}px)) rotate(${photo.rotate}deg) scale(1)`
@@ -320,7 +343,7 @@ export default function Index() {
                 zIndex: 30 + i,
                 cursor: isVisible ? "pointer" : "default",
               }}
-              onClick={() => isVisible && setSelectedPhoto(i)}
+              onClick={() => isVisible && setSelectedPhoto(i + 1)}
             >
               <div className="polaroid">
                 <img src={photo.src} alt="" className="polaroid-img" draggable={false} />
@@ -329,8 +352,13 @@ export default function Index() {
           );
         })}
 
-        {/* Box */}
-        <div className="box-anchor">
+        {/* Box — исчезает через 5 сек */}
+        <div className="box-anchor" style={{
+          opacity: boxHidden ? 0 : 1,
+          transform: `translateX(-50%) ${boxHidden ? "scale(0.7) translateY(30px)" : "scale(1)"}`,
+          transition: "all 0.7s cubic-bezier(0.4,0,0.2,1)",
+          pointerEvents: boxHidden ? "none" : "auto",
+        }}>
           <RoundBox opened={opened} onClick={handleOpen} onHover={handleHover} shaking={shaking} />
         </div>
       </div>
