@@ -4,21 +4,13 @@ import Icon from "@/components/ui/icon";
 const ROTATIONS = [-7, 5, -4, 8, -3, 6, -5, 9, -6, 4];
 
 const DEFAULT_PHOTOS = [
-  {
-    src: "https://cdn.poehali.dev/projects/d16ae21f-f210-4a6c-a55c-d3151bda89a5/files/c79a9be2-c1eb-454b-bcab-877f9ba0bc9f.jpg",
-    rotate: -7,
-    fileName: "photo1.jpg",
-  },
-  {
-    src: "https://cdn.poehali.dev/projects/d16ae21f-f210-4a6c-a55c-d3151bda89a5/files/6fd2b8a9-ac25-4b0a-887d-23e44b897696.jpg",
-    rotate: 5,
-    fileName: "photo2.jpg",
-  },
-  {
-    src: "https://cdn.poehali.dev/projects/d16ae21f-f210-4a6c-a55c-d3151bda89a5/files/a77187c0-08ac-43c7-978f-05f141bc2f6d.jpg",
-    rotate: -4,
-    fileName: "photo3.jpg",
-  },
+  { src: "https://cdn.poehali.dev/projects/d16ae21f-f210-4a6c-a55c-d3151bda89a5/bucket/de5def99-c182-4d3f-80e6-57183ef4d148.jpg", rotate: -7, fileName: "photo1.jpg" },
+  { src: "https://cdn.poehali.dev/projects/d16ae21f-f210-4a6c-a55c-d3151bda89a5/bucket/2ea0a8dd-4812-4fda-b4f0-5ca0e041582e.jpg", rotate: 5, fileName: "photo2.jpg" },
+  { src: "https://cdn.poehali.dev/projects/d16ae21f-f210-4a6c-a55c-d3151bda89a5/bucket/da567b94-ce61-402c-a212-167db2b9366e.jpg", rotate: -4, fileName: "photo3.jpg" },
+  { src: "https://cdn.poehali.dev/projects/d16ae21f-f210-4a6c-a55c-d3151bda89a5/bucket/433bf212-c395-4f31-9399-81c279560e9c.jpg", rotate: 8, fileName: "photo4.jpg" },
+  { src: "https://cdn.poehali.dev/projects/d16ae21f-f210-4a6c-a55c-d3151bda89a5/bucket/2a98fe9f-d6f2-4b11-a4cc-d9f7d9e9357e.jpg", rotate: -3, fileName: "photo5.jpg" },
+  { src: "https://cdn.poehali.dev/projects/d16ae21f-f210-4a6c-a55c-d3151bda89a5/bucket/b76ef4e0-8005-465a-8ffc-b1e70634f560.jpg", rotate: 6, fileName: "photo6.jpg" },
+  { src: "https://cdn.poehali.dev/projects/d16ae21f-f210-4a6c-a55c-d3151bda89a5/bucket/6d7b8cca-3fae-4f39-bac8-2d18460c24c4.jpg", rotate: -5, fileName: "photo7.jpg" },
 ];
 
 interface PhotoItem {
