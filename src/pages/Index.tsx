@@ -139,6 +139,8 @@ function getFanPositions(count: number) {
 }
 
 export default function Index() {
+  const isEditMode = new URLSearchParams(window.location.search).get("edit") === "true";
+
   const [photos, setPhotos] = useState<PhotoItem[]>(DEFAULT_PHOTOS);
   const [opened, setOpened] = useState(false);
   const [visiblePhotos, setVisiblePhotos] = useState<number[]>([]);
@@ -265,8 +267,8 @@ export default function Index() {
         {opened ? "С любовью, для тебя 💛" : "Нажми, чтобы открыть подарок"}
       </p>
 
-      {/* Upload panel */}
-      {!opened && showUpload && (
+      {/* Upload panel — только в режиме редактирования */}
+      {isEditMode && !opened && showUpload && (
         <div className="mb-5 animate-in" style={{ width: "min(360px, 92vw)" }}>
           <div className="upload-zone">
             <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden"
@@ -344,10 +346,12 @@ export default function Index() {
             <Icon name="ChevronUp" size={20} style={{ color: "var(--gold)" }} />
             <span className="cta-label">Нажми на коробку</span>
           </div>
-          <button className="edit-btn" onClick={() => setShowUpload(v => !v)}>
-            <Icon name={showUpload ? "ChevronUp" : "ImagePlus"} size={14} />
-            {showUpload ? "Скрыть" : "Добавить свои фото"}
-          </button>
+          {isEditMode && (
+            <button className="edit-btn" onClick={() => setShowUpload(v => !v)}>
+              <Icon name={showUpload ? "ChevronUp" : "ImagePlus"} size={14} />
+              {showUpload ? "Скрыть" : "Добавить свои фото"}
+            </button>
+          )}
         </div>
       ) : visiblePhotos.length === photos.length ? (
         <div className="mt-6 flex flex-col items-center gap-3">
