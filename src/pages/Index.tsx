@@ -4,6 +4,7 @@ import Icon from "@/components/ui/icon";
 const ROTATIONS = [-7, 5, -4, 8, -3, 6, -5, 9, -6, 4];
 
 const DEFAULT_PHOTOS = [
+  { src: "https://cdn.poehali.dev/projects/d16ae21f-f210-4a6c-a55c-d3151bda89a5/bucket/b5e09914-3a46-4307-bc5c-374a8632e876.png", rotate: 0, fileName: "photo9.png" },
   { src: "https://cdn.poehali.dev/projects/d16ae21f-f210-4a6c-a55c-d3151bda89a5/bucket/de5def99-c182-4d3f-80e6-57183ef4d148.jpg", rotate: -7, fileName: "photo1.jpg" },
   { src: "https://cdn.poehali.dev/projects/d16ae21f-f210-4a6c-a55c-d3151bda89a5/bucket/2ea0a8dd-4812-4fda-b4f0-5ca0e041582e.jpg", rotate: 5, fileName: "photo2.jpg" },
   { src: "https://cdn.poehali.dev/projects/d16ae21f-f210-4a6c-a55c-d3151bda89a5/bucket/da567b94-ce61-402c-a212-167db2b9366e.jpg", rotate: -4, fileName: "photo3.jpg" },
@@ -12,7 +13,6 @@ const DEFAULT_PHOTOS = [
   { src: "https://cdn.poehali.dev/projects/d16ae21f-f210-4a6c-a55c-d3151bda89a5/bucket/b76ef4e0-8005-465a-8ffc-b1e70634f560.jpg", rotate: 6, fileName: "photo6.jpg" },
   { src: "https://cdn.poehali.dev/projects/d16ae21f-f210-4a6c-a55c-d3151bda89a5/bucket/6d7b8cca-3fae-4f39-bac8-2d18460c24c4.jpg", rotate: -5, fileName: "photo7.jpg" },
   { src: "https://cdn.poehali.dev/projects/d16ae21f-f210-4a6c-a55c-d3151bda89a5/bucket/40272bd3-65c1-4413-b4d8-ffe4b8284889.jpg", rotate: 9, fileName: "photo8.jpg" },
-  { src: "https://cdn.poehali.dev/projects/d16ae21f-f210-4a6c-a55c-d3151bda89a5/bucket/b5e09914-3a46-4307-bc5c-374a8632e876.png", rotate: -6, fileName: "photo9.png" },
 ];
 
 interface PhotoItem {
@@ -159,8 +159,10 @@ export default function Index() {
       audio.play().then(() => setIsPlaying(true)).catch(() => {});
       audio.onended = () => setIsPlaying(false);
     }
-    photos.forEach((_, i) => {
-      setTimeout(() => setVisiblePhotos((prev) => [...prev, i]), 350 + i * 180);
+    // Первое фото появляется сразу, остальные через 5 секунд
+    setTimeout(() => setVisiblePhotos([0]), 350);
+    photos.slice(1).forEach((_, i) => {
+      setTimeout(() => setVisiblePhotos((prev) => [...prev, i + 1]), 5000 + i * 180);
     });
     setTimeout(() => setConfetti(false), 3500);
   };
