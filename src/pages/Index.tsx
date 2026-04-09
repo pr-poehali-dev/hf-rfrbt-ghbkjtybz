@@ -235,22 +235,25 @@ export default function Index() {
     <div className="gift-bg min-h-screen flex flex-col items-center justify-center overflow-hidden relative py-8">
       <Confetti active={confetti} />
 
-      {/* Gold glitters — плавающие блёстки */}
+      {/* Gold glitters — плавающие блёстки и сердечки */}
       <div className="glitter-field">
-        {Array.from({ length: 30 }).map((_, i) => {
-          const size = 4 + Math.random() * 8;
-          const shapes = ["✦","✧","◆","▲","●","★","♦"];
-          const colors = ["#e8a020","#ffd97d","#f5c842","#ffb347","#ffe066","#fce08a"];
-          const shape = shapes[i % shapes.length];
-          const color = colors[i % colors.length];
+        {Array.from({ length: 50 }).map((_, i) => {
+          const isHeart = i % 4 === 0;
+          const size = isHeart ? 14 + (i % 5) * 5 : 10 + (i % 6) * 4;
+          const shapes = ["✦","✧","◆","★","♦","✦","◆","✧"];
+          const hearts = ["♥","❤","♡","💛","🤍"];
+          const goldColors = ["#e8a020","#ffd97d","#f5c842","#ffb347","#ffe066","#fce08a","#d4910e"];
+          const heartColors = ["#c0213a","#e8354e","#ff6b8a","#ff4466","#d63060","#e8a020","#ffd97d"];
+          const shape = isHeart ? hearts[i % hearts.length] : shapes[i % shapes.length];
+          const color = isHeart ? heartColors[i % heartColors.length] : goldColors[i % goldColors.length];
           return (
             <div key={i} className="glitter" style={{
-              left: `${(i * 3.7 + Math.sin(i) * 15) % 100}%`,
-              top: `${(i * 7.3 + Math.cos(i) * 20) % 100}%`,
+              left: `${((i * 2.1 + Math.sin(i * 0.7) * 18) % 100 + 100) % 100}%`,
+              top: `${((i * 4.3 + Math.cos(i * 0.5) * 22) % 100 + 100) % 100}%`,
               fontSize: `${size}px`,
               color,
-              animationDuration: `${3 + (i % 5)}s`,
-              animationDelay: `${(i * 0.4) % 5}s`,
+              animationDuration: `${4 + (i % 6)}s`,
+              animationDelay: `${(i * 0.25) % 6}s`,
             }}>{shape}</div>
           );
         })}
