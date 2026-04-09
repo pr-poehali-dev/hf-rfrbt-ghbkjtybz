@@ -95,6 +95,42 @@
   }
 }
 
+/* ═══ GOLD GLITTERS ═══ */
+.glitter-field {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.glitter {
+  position: absolute;
+  pointer-events: none;
+  animation: glitter-drift linear infinite;
+}
+
+@keyframes glitter-drift {
+  0% {
+    opacity: 0;
+    transform: translateY(0px) rotate(0deg) scale(0.6);
+  }
+  12% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.85;
+    transform: translateY(-55px) rotate(200deg) scale(1.2);
+  }
+  88% {
+    opacity: 0.6;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-110px) rotate(360deg) scale(0.4);
+  }
+}
+
 /* ═══════════════════════════════════════
    ROUND BOX SCENE
 ═══════════════════════════════════════ */
@@ -763,8 +799,8 @@
 }
 
 .scene-wrap.scene-expanded {
-  height: 520px;
-  width: min(500px, 96vw);
+  height: 580px;
+  width: min(560px, 98vw);
 }
 
 /* Первое фото — крупная заставка */
@@ -772,14 +808,14 @@
   position: absolute;
   top: 50%;
   left: 50%;
-  width: min(260px, 72vw);
+  width: min(340px, 88vw);
   z-index: 40;
   cursor: pointer;
-  filter: drop-shadow(0 12px 32px rgba(120, 10, 30, 0.35));
+  filter: drop-shadow(0 16px 40px rgba(120, 10, 30, 0.4));
   transition: filter 0.2s ease;
 }
 .photo-hero:hover {
-  filter: drop-shadow(0 18px 40px rgba(120, 10, 30, 0.5)) brightness(1.04);
+  filter: drop-shadow(0 22px 48px rgba(120, 10, 30, 0.55)) brightness(1.04);
 }
 
 /* Photos float above box center */
@@ -787,7 +823,7 @@
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 148px;
+  width: 172px;
   filter: drop-shadow(0 8px 20px rgba(120, 10, 30, 0.28));
   transition: filter 0.2s ease;
 }

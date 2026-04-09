@@ -162,10 +162,10 @@ export default function Index() {
     }
     // Первое фото — крупное, по центру
     setTimeout(() => setVisiblePhotos([0]), 350);
-    // Через 5 сек коробка исчезает и вылетают остальные фото
+    // Через 5 сек — коробка и первое фото исчезают ОДНОВРЕМЕННО, сразу вылетают остальные
     setTimeout(() => setBoxHidden(true), 5000);
     photos.slice(1).forEach((_, i) => {
-      setTimeout(() => setVisiblePhotos((prev) => [...prev, i + 1]), 5200 + i * 180);
+      setTimeout(() => setVisiblePhotos((prev) => [...prev, i + 1]), 5000 + i * 200);
     });
     setTimeout(() => setConfetti(false), 3500);
   };
@@ -234,6 +234,27 @@ export default function Index() {
   return (
     <div className="gift-bg min-h-screen flex flex-col items-center justify-center overflow-hidden relative py-8">
       <Confetti active={confetti} />
+
+      {/* Gold glitters — плавающие блёстки */}
+      <div className="glitter-field">
+        {Array.from({ length: 30 }).map((_, i) => {
+          const size = 4 + Math.random() * 8;
+          const shapes = ["✦","✧","◆","▲","●","★","♦"];
+          const colors = ["#e8a020","#ffd97d","#f5c842","#ffb347","#ffe066","#fce08a"];
+          const shape = shapes[i % shapes.length];
+          const color = colors[i % colors.length];
+          return (
+            <div key={i} className="glitter" style={{
+              left: `${(i * 3.7 + Math.sin(i) * 15) % 100}%`,
+              top: `${(i * 7.3 + Math.cos(i) * 20) % 100}%`,
+              fontSize: `${size}px`,
+              color,
+              animationDuration: `${3 + (i % 5)}s`,
+              animationDelay: `${(i * 0.4) % 5}s`,
+            }}>{shape}</div>
+          );
+        })}
+      </div>
 
       {/* Sparkles */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
