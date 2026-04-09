@@ -1,27 +1,28 @@
 import { useState, useRef, useEffect } from "react";
 import Icon from "@/components/ui/icon";
 
+const ROTATIONS = [-7, 5, -4, 8, -3, 6, -5, 9, -6, 4];
+
 const DEFAULT_PHOTOS = [
   {
     src: "https://cdn.poehali.dev/projects/d16ae21f-f210-4a6c-a55c-d3151bda89a5/files/c79a9be2-c1eb-454b-bcab-877f9ba0bc9f.jpg",
-    caption: "Лучший день",
     rotate: -7,
+    fileName: "photo1.jpg",
   },
   {
     src: "https://cdn.poehali.dev/projects/d16ae21f-f210-4a6c-a55c-d3151bda89a5/files/6fd2b8a9-ac25-4b0a-887d-23e44b897696.jpg",
-    caption: "С днём рождения!",
     rotate: 5,
+    fileName: "photo2.jpg",
   },
   {
     src: "https://cdn.poehali.dev/projects/d16ae21f-f210-4a6c-a55c-d3151bda89a5/files/a77187c0-08ac-43c7-978f-05f141bc2f6d.jpg",
-    caption: "Всегда рядом",
     rotate: -4,
+    fileName: "photo3.jpg",
   },
 ];
 
 interface PhotoItem {
   src: string;
-  caption: string;
   rotate: number;
   fileName?: string;
 }
@@ -122,65 +123,19 @@ function RoundBox({ opened, onClick, onHover, shaking }: {
   );
 }
 
-/* ── Upload Button ── */
-function UploadZone({ photos, onChange }: { photos: PhotoItem[]; onChange: (p: PhotoItem[]) => void }) {
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  const handleFiles = (files: FileList | null) => {
-    if (!files) return;
-    const ROTATIONS = [-7, 5, -4, 8, -3, 6];
-    const CAPTIONS = ["Наш момент", "С любовью", "Всегда вместе", "Навсегда", "Счастье", "Тепло"];
-    Array.from(files).slice(0, 6).forEach((file, i) => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const src = e.target?.result as string;
-        const idx = photos.length + i;
-        onChange([...photos.slice(0, idx), {
-          src,
-          caption: CAPTIONS[idx % CAPTIONS.length],
-          rotate: ROTATIONS[idx % ROTATIONS.length],
-          fileName: file.name,
-        }, ...photos.slice(idx + 1)]);
-      };
-      reader.readAsDataURL(file);
-    });
-  };
-
-  return (
-    <div className="upload-zone">
-      <input ref={inputRef} type="file" accept="image/*" multiple className="hidden"
-        onChange={(e) => handleFiles(e.target.files)} />
-
-      <div className="upload-grid">
-        {Array.from({ length: 3 }).map((_, i) => {
-          const photo = photos[i];
-          return (
-            <div key={i} className="upload-slot" onClick={() => !photo && inputRef.current?.click()}>
-              {photo ? (
-                <>
-                  <img src={photo.src} alt="" className="upload-preview" />
-                  <button className="upload-remove" onClick={(e) => { e.stopPropagation(); const next = [...photos]; next.splice(i,1,DEFAULT_PHOTOS[i]); onChange(next); }}>
-                    <Icon name="X" size={10} />
-                  </button>
-                </>
-              ) : (
-                <div className="upload-empty">
-                  <Icon name="ImagePlus" size={20} style={{ color: "var(--gold)" }} />
-                  <span>Фото {i + 1}</span>
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-
-      <button className="upload-btn" onClick={() => inputRef.current?.click()}>
-        <Icon name="Upload" size={14} />
-        Загрузить фото
-      </button>
-      <p className="upload-hint">До 3 фотографий · Нажми на ячейку или кнопку</p>
-    </div>
-  );
+/* ── Fan positions for up to 10 photos ── */
+function getFanPositions(count: number) {
+  const positions = [];
+  const spread = Math.min(260, 40 * count);
+  for (let i = 0; i < count; i++) {
+    const t = count === 1 ? 0.5 : i / (count - 1);
+    const x = (t - 0.5) * spread;
+    // arc: center photo highest, edges lower
+    const arc = -Math.pow((t - 0.5) * 2, 2) * 40;
+    const y = -170 + arc;
+    positions.push({ x, y });
+  }
+  return positions;
 }
 
 export default function Index() {
@@ -191,12 +146,23 @@ export default function Index() {
   const [selectedPhoto, setSelectedPhoto] = useState<number | null>(null);
   const [shaking, setShaking] = useState(false);
   const [showUpload, setShowUpload] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const MUSIC_URL = ""; // будет подставлена ссылка на песню
 
   const handleOpen = () => {
     if (opened) return;
     setOpened(true); setShowUpload(false); setConfetti(true);
+    // play music
+    if (MUSIC_URL) {
+      const audio = new Audio(MUSIC_URL);
+      audio.volume = 0.75;
+      audioRef.current = audio;
+      audio.play().catch(() => {});
+    }
     photos.forEach((_, i) => {
-      setTimeout(() => setVisiblePhotos((prev) => [...prev, i]), 350 + i * 230);
+      setTimeout(() => setVisiblePhotos((prev) => [...prev, i]), 350 + i * 180);
     });
     setTimeout(() => setConfetti(false), 3500);
   };
@@ -207,26 +173,40 @@ export default function Index() {
 
   const handleReset = () => {
     setOpened(false); setVisiblePhotos([]); setSelectedPhoto(null); setConfetti(false);
+    if (audioRef.current) { audioRef.current.pause(); audioRef.current = null; }
+  };
+
+  const handleFiles = (files: FileList | null) => {
+    if (!files) return;
+    const newPhotos: PhotoItem[] = [];
+    Array.from(files).slice(0, 10).forEach((file, i) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        newPhotos.push({
+          src: e.target?.result as string,
+          rotate: ROTATIONS[i % ROTATIONS.length],
+          fileName: file.name,
+        });
+        if (newPhotos.length === Math.min(files.length, 10)) {
+          setPhotos(newPhotos);
+        }
+      };
+      reader.readAsDataURL(file);
+    });
   };
 
   const handleDownload = (photo: PhotoItem) => {
-    const a = document.createElement("a");
-    a.href = photo.src;
-    a.download = photo.fileName || `photo-${photo.caption}.jpg`;
-    // для внешних URL открываем в новой вкладке
-    if (photo.src.startsWith("http")) {
-      window.open(photo.src, "_blank");
-    } else {
+    if (photo.src.startsWith("data:")) {
+      const a = document.createElement("a");
+      a.href = photo.src;
+      a.download = photo.fileName || "photo.jpg";
       document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    } else {
+      window.open(photo.src, "_blank");
     }
   };
 
-  /* Fan positions: left, center, right */
-  const FAN = [
-    { x: -145, y: -180 },
-    { x:    0, y: -230 },
-    { x:  145, y: -175 },
-  ];
+  const fanPositions = getFanPositions(photos.length);
 
   return (
     <div className="gift-bg min-h-screen flex flex-col items-center justify-center overflow-hidden relative py-8">
@@ -250,37 +230,67 @@ export default function Index() {
         {opened ? "С любовью, для тебя 💛" : "Нажми, чтобы открыть подарок"}
       </p>
 
-      {/* Upload panel (before open) */}
+      {/* Upload panel */}
       {!opened && showUpload && (
-        <div className="mb-6 animate-in">
-          <UploadZone photos={photos} onChange={setPhotos} />
+        <div className="mb-5 animate-in" style={{ width: "min(360px, 92vw)" }}>
+          <div className="upload-zone">
+            <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden"
+              onChange={(e) => handleFiles(e.target.files)} />
+            {/* Preview grid */}
+            {photos.length > 0 && (
+              <div className="upload-grid mb-3">
+                {photos.map((p, i) => (
+                  <div key={i} className="upload-slot" style={{ position: "relative" }}>
+                    <img src={p.src} alt="" className="upload-preview" />
+                    <button className="upload-remove" onClick={() => {
+                      const next = photos.filter((_, idx) => idx !== i);
+                      setPhotos(next.length > 0 ? next : DEFAULT_PHOTOS);
+                    }}>
+                      <Icon name="X" size={9} />
+                    </button>
+                  </div>
+                ))}
+                {photos.length < 10 && (
+                  <div className="upload-slot upload-add" onClick={() => fileInputRef.current?.click()}>
+                    <div className="upload-empty">
+                      <Icon name="Plus" size={22} style={{ color: "var(--gold)" }} />
+                      <span>Добавить</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+            <button className="upload-btn" onClick={() => fileInputRef.current?.click()}>
+              <Icon name="ImagePlus" size={14} />
+              {photos === DEFAULT_PHOTOS ? "Выбрать свои фото" : "Добавить ещё"}
+            </button>
+            <p className="upload-hint mt-2">До 10 фотографий</p>
+          </div>
         </div>
       )}
 
       {/* Scene */}
       <div className="scene-wrap">
-
-        {/* Flying photos — rendered inside scene, fan out above box */}
+        {/* Flying photos */}
         {photos.map((photo, i) => {
           const isVisible = visiblePhotos.includes(i);
-          const pos = FAN[i] ?? FAN[0];
+          const pos = fanPositions[i] ?? { x: 0, y: -180 };
           return (
             <div key={i} className="photo-fly"
               style={{
                 transform: isVisible
                   ? `translate(calc(-50% + ${pos.x}px), calc(-50% + ${pos.y}px)) rotate(${photo.rotate}deg) scale(1)`
-                  : `translate(-50%, -50%) rotate(0deg) scale(0.1)`,
+                  : `translate(-50%, -50%) rotate(0deg) scale(0.08)`,
                 opacity: isVisible ? 1 : 0,
                 transition: "all 0.72s cubic-bezier(0.34,1.56,0.64,1)",
-                transitionDelay: `${i * 0.15}s`,
+                transitionDelay: `${i * 0.12}s`,
                 zIndex: 30 + i,
                 cursor: isVisible ? "pointer" : "default",
               }}
               onClick={() => isVisible && setSelectedPhoto(i)}
             >
               <div className="polaroid">
-                <img src={photo.src} alt={photo.caption} className="polaroid-img" draggable={false} />
-                <div className="polaroid-caption">{photo.caption}</div>
+                <img src={photo.src} alt="" className="polaroid-img" draggable={false} />
               </div>
             </div>
           );
@@ -292,7 +302,7 @@ export default function Index() {
         </div>
       </div>
 
-      {/* CTA / controls */}
+      {/* Controls */}
       {!opened ? (
         <div className="mt-6 flex flex-col items-center gap-3">
           <div className="cta-bounce flex flex-col items-center gap-1">
@@ -318,14 +328,20 @@ export default function Index() {
       {selectedPhoto !== null && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center lightbox-bg"
           onClick={() => setSelectedPhoto(null)}>
-          <div className="lightbox-card" style={{ rotate: `${photos[selectedPhoto].rotate * 0.4}deg` }}
+          <div className="lightbox-card"
+            style={{ rotate: `${photos[selectedPhoto].rotate * 0.4}deg` }}
             onClick={(e) => e.stopPropagation()}>
-            <img src={photos[selectedPhoto].src} alt={photos[selectedPhoto].caption} className="lightbox-img" />
+            <img src={photos[selectedPhoto].src} alt="" className="lightbox-img" />
             <div className="lightbox-footer">
-              <div className="lightbox-caption">{photos[selectedPhoto].caption}</div>
+              <button className="lightbox-nav" onClick={(e) => { e.stopPropagation(); setSelectedPhoto((selectedPhoto - 1 + photos.length) % photos.length); }}>
+                <Icon name="ChevronLeft" size={18} />
+              </button>
               <button className="lightbox-download" onClick={() => handleDownload(photos[selectedPhoto])}>
-                <Icon name="Download" size={16} />
+                <Icon name="Download" size={15} />
                 Скачать
+              </button>
+              <button className="lightbox-nav" onClick={(e) => { e.stopPropagation(); setSelectedPhoto((selectedPhoto + 1) % photos.length); }}>
+                <Icon name="ChevronRight" size={18} />
               </button>
             </div>
           </div>
