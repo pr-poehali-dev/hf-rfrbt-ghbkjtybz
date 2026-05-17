@@ -40,6 +40,20 @@ const BLOCK4_PHOTOS = [
 
 const CARD4_TEXT = "Вот это тебе точно понравится! 🏛️\n\nТаких путешественников как ты — ещё не видел этот мир!\n\nКолизей, Тадж-Махал и Пиза... Посмотри, как ты прекрасна на фоне этих достопримечательностей 😍\n\nНо и это ещё не всё...";
 
+const BLOCK5_PHOTOS = [
+  "https://cdn.poehali.dev/projects/d16ae21f-f210-4a6c-a55c-d3151bda89a5/bucket/157dae5f-663d-49f6-99da-ae9109042d7b.png",
+  "https://cdn.poehali.dev/projects/d16ae21f-f210-4a6c-a55c-d3151bda89a5/bucket/47f74a95-2082-421c-b355-e55715933354.png",
+  "https://cdn.poehali.dev/projects/d16ae21f-f210-4a6c-a55c-d3151bda89a5/bucket/0f029686-3f6c-4743-a8e7-bfd6bd515dd2.png",
+];
+
+const CARD5_TEXT = "Не только Франции хорошо 🌸\n\nДома, среди сирени — нежной как ты — и лесным воздухом, чистым и свежим как твоя душа, тоже прекрасно!\n\nПоэтому мы очень рады, что ты с нами, а все твои путешествия — лишь лирическая фантазия 💛";
+
+const CARD5_BG: React.CSSProperties = {
+  background: "radial-gradient(ellipse at 20% 80%, rgba(200,170,220,0.35) 0%, transparent 55%), radial-gradient(ellipse at 80% 20%, rgba(220,190,240,0.4) 0%, transparent 55%), linear-gradient(145deg, #fdf8ff 0%, #f8f0ff 50%, #f3e8ff 100%)",
+  border: "1.5px solid rgba(170,120,210,0.35)",
+  boxShadow: "0 4px 32px rgba(140,80,180,0.12), 0 1px 4px rgba(0,0,0,0.07), inset 0 0 0 6px rgba(210,170,240,0.25)",
+};
+
 const CARD4_BG: React.CSSProperties = {
   background: "radial-gradient(ellipse at 20% 80%, rgba(255,220,150,0.35) 0%, transparent 55%), radial-gradient(ellipse at 80% 20%, rgba(255,235,180,0.4) 0%, transparent 55%), linear-gradient(145deg, #fffdf5 0%, #fff9e8 50%, #fff5d6 100%)",
   border: "1.5px solid rgba(210,170,80,0.4)",
@@ -107,6 +121,13 @@ export default function Index() {
   const [showCard4, setShowCard4] = useState(false);
   const [b4PhotosVisible, setB4PhotosVisible] = useState(false);
   const [b4Done, setB4Done] = useState(false);
+  const [showBlock5, setShowBlock5] = useState(false);
+
+  // Block 5
+  const [b5States, setB5States] = useState<PhotoState[]>(["hidden","hidden","hidden"]);
+  const [showCard5, setShowCard5] = useState(false);
+  const [b5PhotosVisible, setB5PhotosVisible] = useState(false);
+  const [b5Done, setB5Done] = useState(false);
 
   const boxAudioRef = useRef<HTMLAudioElement | null>(null);
   const mainAudioRef = useRef<HTMLAudioElement | null>(null);
@@ -122,6 +143,10 @@ export default function Index() {
 
   const setB4State = (idx: number, state: PhotoState) => {
     setB4States(prev => { const next = [...prev]; next[idx] = state; return next; });
+  };
+
+  const setB5State = (idx: number, state: PhotoState) => {
+    setB5States(prev => { const next = [...prev]; next[idx] = state; return next; });
   };
 
   /* ── Запуск блока 2 ── */
@@ -180,6 +205,23 @@ export default function Index() {
     }, 10000);
   };
 
+  /* ── Запуск блока 5 ── */
+  const startBlock5 = () => {
+    setShowBlock5(true);
+    setShowCard5(true);
+
+    setTimeout(() => {
+      setShowCard5(false);
+      setTimeout(() => {
+        setB5PhotosVisible(true);
+        setTimeout(() => setB5State(0, "row"), 100);
+        setTimeout(() => setB5State(1, "row"), 320);
+        setTimeout(() => setB5State(2, "row"), 540);
+        setTimeout(() => setB5Done(true), 1800);
+      }, 600);
+    }, 10000);
+  };
+
   /* ── Открытие коробки ── */
   const handleOpen = () => {
     if (opened) return;
@@ -223,6 +265,11 @@ export default function Index() {
     setShowCard4(false);
     setB4PhotosVisible(false);
     setB4Done(false);
+    setShowBlock5(false);
+    setB5States(["hidden","hidden","hidden"]);
+    setShowCard5(false);
+    setB5PhotosVisible(false);
+    setB5Done(false);
     setConfetti(false);
     if (boxAudioRef.current) { fadeOutAudio(boxAudioRef.current); boxAudioRef.current = null; }
     if (mainAudioRef.current) { fadeOutAudio(mainAudioRef.current); mainAudioRef.current = null; }
@@ -356,7 +403,7 @@ export default function Index() {
       )}
 
       {/* === БЛОК 4: открытка → фото → кнопка === */}
-      {showBlock4 && (
+      {showBlock4 && !showBlock5 && (
         <div className="block2-scene">
           <div className="b2-card-wrap" style={{
             opacity: showCard4 ? 1 : 0,
@@ -378,6 +425,36 @@ export default function Index() {
         </div>
       )}
 
+      {/* Кнопка "Дальше" после блока 4 */}
+      {b4Done && !showBlock5 && (
+        <div className="mt-8 flex flex-col items-center gap-3">
+          <button className="next-btn" onClick={startBlock5}>Дальше 🌸</button>
+        </div>
+      )}
+
+      {/* === БЛОК 5: открытка → фото → финал === */}
+      {showBlock5 && (
+        <div className="block2-scene">
+          <div className="b2-card-wrap" style={{
+            opacity: showCard5 ? 1 : 0,
+            transform: showCard5 ? "scale(1)" : "scale(0.7)",
+            transition: "all 0.9s cubic-bezier(0.34,1.2,0.64,1)",
+            pointerEvents: showCard5 ? "auto" : "none",
+            maxHeight: showCard5 ? "600px" : "0px",
+          }}>
+            <Postcard text={CARD5_TEXT} visible={showCard5} emoji="🌸" flowers={["💜","🌿","💜"]} bgStyle={CARD5_BG} rotate={-2} animFrom="center" />
+          </div>
+
+          {b5PhotosVisible && (
+            <div className="b2-row">
+              {BLOCK5_PHOTOS.map((src, i) => (
+                <Block2Photo key={i} src={src} index={i} state={b5States[i]} onClick={() => setLightboxSrc(src)} />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Controls */}
       {!opened ? (
         <div className="mt-6 flex flex-col items-center gap-3">
@@ -386,9 +463,8 @@ export default function Index() {
             <span className="cta-label">Нажми на коробку</span>
           </div>
         </div>
-      ) : b4Done ? (
+      ) : b5Done ? (
         <div className="mt-8 flex flex-col items-center gap-3">
-          <button className="next-btn" onClick={() => {}}>Дальше 🌟</button>
           <button className="reset-btn" onClick={handleReset}>
             <Icon name="RefreshCw" size={14} />
             Открыть снова
