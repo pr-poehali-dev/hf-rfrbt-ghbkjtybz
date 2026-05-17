@@ -163,8 +163,13 @@ function Postcard({
 }
 
 /* ── Block2Photo: одно фото для блока 2 ── */
-// Состояния: hidden → flying-in → big (20с) → shrink → parked-left
-type PhotoState = "hidden" | "flying-in" | "big" | "shrinking" | "parked";
+// Состояния: hidden → row (в ряд, 20с) → shrinking → parked-left
+type PhotoState = "hidden" | "row" | "shrinking" | "parked";
+
+// Горизонтальные сдвиги для ряда из 3 фото
+const ROW_OFFSETS = [-34, 0, 34]; // vw от центра
+// Конечные позиции слева (после улёта)
+const PARK_OFFSETS = [-38, -46, -54]; // vw от центра, немного веером
 
 function Block2Photo({
   src,
@@ -177,52 +182,40 @@ function Block2Photo({
   state: PhotoState;
   onClick: () => void;
 }) {
-  // Позиции для финального "припаркованного" состояния слева
-  // 3 фото выстраиваются вертикально слева
-  const parkOffsets = [
-    { x: -42, y: -80 },
-    { x: -42, y: 0 },
-    { x: -42, y: 80 },
-  ];
-  const park = parkOffsets[index] ?? { x: -42, y: 0 };
+  const rowX = ROW_OFFSETS[index] ?? 0;
+  const parkX = PARK_OFFSETS[index] ?? -42;
+  const rot = [-3, 1, -2][index] ?? 0;
 
   const getStyle = (): React.CSSProperties => {
     switch (state) {
       case "hidden":
         return {
           opacity: 0,
-          transform: "translate(-50%, -50%) scale(0.05) rotate(360deg)",
+          transform: `translate(calc(-50% + ${rowX}vw), -50%) scale(0.05) rotate(360deg)`,
           transition: "none",
           pointerEvents: "none",
         };
-      case "flying-in":
+      case "row":
         return {
           opacity: 1,
-          transform: "translate(-50%, -50%) scale(1) rotate(0deg)",
-          transition: "all 1.1s cubic-bezier(0.34,1.15,0.64,1)",
-          transitionDelay: `${index * 0.25}s`,
-          pointerEvents: "none",
-        };
-      case "big":
-        return {
-          opacity: 1,
-          transform: "translate(-50%, -50%) scale(1) rotate(0deg)",
-          transition: "all 0.5s ease",
+          transform: `translate(calc(-50% + ${rowX}vw), -50%) scale(1) rotate(${rot}deg)`,
+          transition: "all 1s cubic-bezier(0.34,1.15,0.64,1)",
+          transitionDelay: `${index * 0.22}s`,
           pointerEvents: "auto",
           cursor: "pointer",
         };
       case "shrinking":
         return {
           opacity: 1,
-          transform: `translate(calc(-50% + ${park.x}vw), calc(-50% + ${park.y}px)) scale(0.32) rotate(${index % 2 === 0 ? -4 : 4}deg)`,
-          transition: `all 0.85s cubic-bezier(0.4,0,0.6,1)`,
-          transitionDelay: `${index * 0.12}s`,
+          transform: `translate(calc(-50% + ${parkX}vw), -50%) scale(0.28) rotate(${rot * 2}deg)`,
+          transition: "all 0.9s cubic-bezier(0.4,0,0.6,1)",
+          transitionDelay: `${index * 0.1}s`,
           pointerEvents: "none",
         };
       case "parked":
         return {
           opacity: 1,
-          transform: `translate(calc(-50% + ${park.x}vw), calc(-50% + ${park.y}px)) scale(0.32) rotate(${index % 2 === 0 ? -4 : 4}deg)`,
+          transform: `translate(calc(-50% + ${parkX}vw), -50%) scale(0.28) rotate(${rot * 2}deg)`,
           transition: "all 0.3s ease",
           pointerEvents: "none",
         };
@@ -235,9 +228,9 @@ function Block2Photo({
       style={getStyle()}
       onClick={onClick}
     >
-      <div className="photo-frame">
+      <div className="photo-frame b2-photo-frame">
         <div className="photo-frame-inner">
-          <img src={src} alt="" className="block1-img" draggable={false} />
+          <img src={src} alt="" className="b2-img" draggable={false} />
         </div>
         <div className="photo-frame-corner tl" />
         <div className="photo-frame-corner tr" />
@@ -320,22 +313,25 @@ export default function Index() {
 
   /* Запускаем блок 2 */
   const startBlock2 = () => {
-    setShowBlock2(true);
+    // Блок 1 растворяется
+    setShowBlock1Photo(false);
+    setShowBlock1Card(false);
 
-    // Фото влетают по одному
-    setTimeout(() => setB2State(0, "flying-in"), 300);
-    setTimeout(() => setB2State(1, "flying-in"), 550);
-    setTimeout(() => setB2State(2, "flying-in"), 800);
-
-    // Через 1.5с все три висят крупно (состояние big)
-    setTimeout(() => setAllB2States("big"), 1800);
-
-    // Через 20с — сжимаются и улетают влево
-    setTimeout(() => setAllB2States("shrinking"), 21800);
+    // Чуть позже показываем блок 2
     setTimeout(() => {
-      setAllB2States("parked");
-      setShowCard2(true);
-    }, 23000);
+      setShowBlock2(true);
+      // Фото влетают по одному в ряд
+      setTimeout(() => setB2State(0, "row"), 200);
+      setTimeout(() => setB2State(1, "row"), 420);
+      setTimeout(() => setB2State(2, "row"), 640);
+
+      // Через 20с — сжимаются и улетают влево
+      setTimeout(() => setAllB2States("shrinking"), 20800);
+      setTimeout(() => {
+        setAllB2States("parked");
+        setShowCard2(true);
+      }, 22000);
+    }, 600);
   };
 
   const handleOpen = () => {
@@ -460,8 +456,14 @@ export default function Index() {
       )}
 
       {/* === БЛОК 1: Фото + Открытка === */}
-      {opened && (
-        <div className="block1-scene">
+      {opened && !showBlock2 && (
+        <div
+          className="block1-scene"
+          style={{
+            opacity: showBlock1Photo ? 1 : 0,
+            transition: "opacity 0.6s ease",
+          }}
+        >
           <div className={`block1-photo${showBlock1Photo ? " block1-photo--visible" : ""}`}>
             <div className="photo-frame">
               <div className="photo-frame-inner">

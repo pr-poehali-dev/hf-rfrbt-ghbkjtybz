@@ -1336,19 +1336,33 @@
   position: absolute;
   top: 50%;
   left: 50%;
-  width: min(85vw, 85vh);
-  filter: drop-shadow(0 20px 60px rgba(80, 10, 30, 0.45));
-  pointer-events: none;
+  /* ширина одного фото — треть экрана минус отступы */
+  width: min(29vw, 340px);
+  filter: drop-shadow(0 16px 40px rgba(80, 10, 30, 0.38));
   z-index: 62;
 }
 
-.b2-photo .photo-frame {
-  padding: 12px;
+.b2-photo-frame {
+  padding: 8px !important;
 }
 
-.b2-photo .block1-img {
-  width: min(85vw, 85vh);
-  height: min(85vw, 85vh);
+.b2-img {
+  display: block;
+  width: min(29vw, 340px);
+  height: min(29vw, 340px);
+  object-fit: cover;
+  border-radius: 2px;
+}
+
+/* На мобильных — фото чуть крупнее */
+@media (max-width: 600px) {
+  .b2-photo {
+    width: min(80vw, 300px);
+  }
+  .b2-img {
+    width: min(80vw, 300px);
+    height: min(80vw, 300px);
+  }
 }
 
 /* Открытка по центру в блоке 2 */
