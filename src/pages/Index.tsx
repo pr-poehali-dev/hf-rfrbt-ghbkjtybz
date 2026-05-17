@@ -32,6 +32,20 @@ const CARD2_TEXT = "Мы решили подарить тебе путешест
 
 const CARD3_TEXT = "Но самая красивая на этих фото — это ты и твоя улыбка! 😊\n\nХотим, чтобы ты так улыбалась чаще ❤️\n\nНо это ещё не всё...";
 
+const BLOCK4_PHOTOS = [
+  "https://cdn.poehali.dev/projects/d16ae21f-f210-4a6c-a55c-d3151bda89a5/bucket/ca78ace9-9e04-4b27-a1a1-e1aab682080c.png",
+  "https://cdn.poehali.dev/projects/d16ae21f-f210-4a6c-a55c-d3151bda89a5/bucket/b459a7de-7b38-4b87-b617-42403a067fee.png",
+  "https://cdn.poehali.dev/projects/d16ae21f-f210-4a6c-a55c-d3151bda89a5/bucket/31ab7dbd-339a-45ec-b409-59f6c2b23ab8.png",
+];
+
+const CARD4_TEXT = "Вот это тебе точно понравится! 🏛️\n\nТаких путешественников как ты — ещё не видел этот мир!\n\nКолизей, Тадж-Махал и Пиза... Посмотри, как ты прекрасна на фоне этих достопримечательностей 😍\n\nНо и это ещё не всё...";
+
+const CARD4_BG: React.CSSProperties = {
+  background: "radial-gradient(ellipse at 20% 80%, rgba(255,220,150,0.35) 0%, transparent 55%), radial-gradient(ellipse at 80% 20%, rgba(255,235,180,0.4) 0%, transparent 55%), linear-gradient(145deg, #fffdf5 0%, #fff9e8 50%, #fff5d6 100%)",
+  border: "1.5px solid rgba(210,170,80,0.4)",
+  boxShadow: "0 4px 32px rgba(180,130,30,0.13), 0 1px 4px rgba(0,0,0,0.07), inset 0 0 0 6px rgba(255,220,120,0.25)",
+};
+
 const CARD2_BG: React.CSSProperties = {
   background: "radial-gradient(ellipse at 20% 80%, rgba(180,220,255,0.4) 0%, transparent 55%), radial-gradient(ellipse at 80% 20%, rgba(200,235,255,0.45) 0%, transparent 55%), linear-gradient(145deg, #f5fbff 0%, #eaf5ff 50%, #e0f0ff 100%)",
   border: "1.5px solid rgba(120,180,230,0.4)",
@@ -86,6 +100,13 @@ export default function Index() {
   const [showCard3, setShowCard3] = useState(false);
   const [b3PhotosVisible, setB3PhotosVisible] = useState(false);
   const [b3Done, setB3Done] = useState(false);
+  const [showBlock4, setShowBlock4] = useState(false);
+
+  // Block 4
+  const [b4States, setB4States] = useState<PhotoState[]>(["hidden","hidden","hidden"]);
+  const [showCard4, setShowCard4] = useState(false);
+  const [b4PhotosVisible, setB4PhotosVisible] = useState(false);
+  const [b4Done, setB4Done] = useState(false);
 
   const boxAudioRef = useRef<HTMLAudioElement | null>(null);
   const mainAudioRef = useRef<HTMLAudioElement | null>(null);
@@ -97,6 +118,10 @@ export default function Index() {
 
   const setB3State = (idx: number, state: PhotoState) => {
     setB3States(prev => { const next = [...prev]; next[idx] = state; return next; });
+  };
+
+  const setB4State = (idx: number, state: PhotoState) => {
+    setB4States(prev => { const next = [...prev]; next[idx] = state; return next; });
   };
 
   /* ── Запуск блока 2 ── */
@@ -134,6 +159,23 @@ export default function Index() {
         setTimeout(() => setB3State(1, "row"), 320);
         setTimeout(() => setB3State(2, "row"), 540);
         setTimeout(() => setB3Done(true), 1800);
+      }, 600);
+    }, 10000);
+  };
+
+  /* ── Запуск блока 4 ── */
+  const startBlock4 = () => {
+    setShowBlock4(true);
+    setShowCard4(true);
+
+    setTimeout(() => {
+      setShowCard4(false);
+      setTimeout(() => {
+        setB4PhotosVisible(true);
+        setTimeout(() => setB4State(0, "row"), 100);
+        setTimeout(() => setB4State(1, "row"), 320);
+        setTimeout(() => setB4State(2, "row"), 540);
+        setTimeout(() => setB4Done(true), 1800);
       }, 600);
     }, 10000);
   };
@@ -176,6 +218,11 @@ export default function Index() {
     setShowCard3(false);
     setB3PhotosVisible(false);
     setB3Done(false);
+    setShowBlock4(false);
+    setB4States(["hidden","hidden","hidden"]);
+    setShowCard4(false);
+    setB4PhotosVisible(false);
+    setB4Done(false);
     setConfetti(false);
     if (boxAudioRef.current) { fadeOutAudio(boxAudioRef.current); boxAudioRef.current = null; }
     if (mainAudioRef.current) { fadeOutAudio(mainAudioRef.current); mainAudioRef.current = null; }
@@ -279,7 +326,7 @@ export default function Index() {
       )}
 
       {/* === БЛОК 3: открытка → фото → кнопка === */}
-      {showBlock3 && (
+      {showBlock3 && !showBlock4 && (
         <div className="block2-scene">
           <div className="b2-card-wrap" style={{
             opacity: showCard3 ? 1 : 0,
@@ -301,6 +348,36 @@ export default function Index() {
         </div>
       )}
 
+      {/* Кнопка "Дальше" после блока 3 */}
+      {b3Done && !showBlock4 && (
+        <div className="mt-8 flex flex-col items-center gap-3">
+          <button className="next-btn" onClick={startBlock4}>Дальше 🏛️</button>
+        </div>
+      )}
+
+      {/* === БЛОК 4: открытка → фото → кнопка === */}
+      {showBlock4 && (
+        <div className="block2-scene">
+          <div className="b2-card-wrap" style={{
+            opacity: showCard4 ? 1 : 0,
+            transform: showCard4 ? "scale(1)" : "scale(0.7)",
+            transition: "all 0.9s cubic-bezier(0.34,1.2,0.64,1)",
+            pointerEvents: showCard4 ? "auto" : "none",
+            maxHeight: showCard4 ? "600px" : "0px",
+          }}>
+            <Postcard text={CARD4_TEXT} visible={showCard4} emoji="🏛️" flowers={["🗽","🕌","🗼"]} bgStyle={CARD4_BG} rotate={2} animFrom="center" />
+          </div>
+
+          {b4PhotosVisible && (
+            <div className="b2-row">
+              {BLOCK4_PHOTOS.map((src, i) => (
+                <Block2Photo key={i} src={src} index={i} state={b4States[i]} onClick={() => setLightboxSrc(src)} />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Controls */}
       {!opened ? (
         <div className="mt-6 flex flex-col items-center gap-3">
@@ -309,7 +386,7 @@ export default function Index() {
             <span className="cta-label">Нажми на коробку</span>
           </div>
         </div>
-      ) : b3Done ? (
+      ) : b4Done ? (
         <div className="mt-8 flex flex-col items-center gap-3">
           <button className="next-btn" onClick={() => {}}>Дальше 🌟</button>
           <button className="reset-btn" onClick={handleReset}>
