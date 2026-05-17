@@ -163,13 +163,7 @@ function Postcard({
 }
 
 /* ── Block2Photo: одно фото для блока 2 ── */
-// Состояния: hidden → row (в ряд, 20с) → shrinking → parked-left
-type PhotoState = "hidden" | "row" | "shrinking" | "parked";
-
-// Горизонтальные сдвиги для ряда из 3 фото
-const ROW_OFFSETS = [-34, 0, 34]; // vw от центра
-// Конечные позиции слева (после улёта)
-const PARK_OFFSETS = [-38, -46, -54]; // vw от центра, немного веером
+type PhotoState = "hidden" | "row";
 
 function Block2Photo({
   src,
@@ -182,51 +176,20 @@ function Block2Photo({
   state: PhotoState;
   onClick: () => void;
 }) {
-  const rowX = ROW_OFFSETS[index] ?? 0;
-  const parkX = PARK_OFFSETS[index] ?? -42;
-  const rot = [-3, 1, -2][index] ?? 0;
-
-  const getStyle = (): React.CSSProperties => {
-    switch (state) {
-      case "hidden":
-        return {
-          opacity: 0,
-          transform: `translate(calc(-50% + ${rowX}vw), -50%) scale(0.05) rotate(360deg)`,
-          transition: "none",
-          pointerEvents: "none",
-        };
-      case "row":
-        return {
-          opacity: 1,
-          transform: `translate(calc(-50% + ${rowX}vw), -50%) scale(1) rotate(${rot}deg)`,
-          transition: "all 1s cubic-bezier(0.34,1.15,0.64,1)",
-          transitionDelay: `${index * 0.22}s`,
-          pointerEvents: "auto",
-          cursor: "pointer",
-        };
-      case "shrinking":
-        return {
-          opacity: 1,
-          transform: `translate(calc(-50% + ${parkX}vw), -50%) scale(0.28) rotate(${rot * 2}deg)`,
-          transition: "all 0.9s cubic-bezier(0.4,0,0.6,1)",
-          transitionDelay: `${index * 0.1}s`,
-          pointerEvents: "none",
-        };
-      case "parked":
-        return {
-          opacity: 1,
-          transform: `translate(calc(-50% + ${parkX}vw), -50%) scale(0.28) rotate(${rot * 2}deg)`,
-          transition: "all 0.3s ease",
-          pointerEvents: "none",
-        };
-    }
-  };
+  const rots = [-3, 1, -2];
+  const rot = rots[index] ?? 0;
 
   return (
     <div
       className="b2-photo"
-      style={getStyle()}
-      onClick={onClick}
+      style={{
+        opacity: state === "row" ? 1 : 0,
+        transform: state === "row" ? `rotate(${rot}deg) scale(1)` : "scale(0.7) translateY(30px)",
+        transition: "all 0.9s cubic-bezier(0.34,1.2,0.64,1)",
+        transitionDelay: `${index * 0.2}s`,
+        cursor: state === "row" ? "pointer" : "default",
+      }}
+      onClick={state === "row" ? onClick : undefined}
     >
       <div className="photo-frame b2-photo-frame">
         <div className="photo-frame-inner">
@@ -285,9 +248,11 @@ export default function Index() {
   const [showBlock1Card, setShowBlock1Card] = useState(false);
   const [showBlock2, setShowBlock2] = useState(false);
 
-  // Block 2 photo states
+  // Block 2
   const [b2States, setB2States] = useState<PhotoState[]>(["hidden","hidden","hidden"]);
   const [showCard2, setShowCard2] = useState(false);
+  const [b2PhotosVisible, setB2PhotosVisible] = useState(false);
+  const [b2Done, setB2Done] = useState(false);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -300,37 +265,29 @@ export default function Index() {
   const CARD2_TEXT = "Мы решили подарить тебе путешествие ✈️\n\nТы будешь смотреть на эти фото и, закрыв глаза, представлять себе эти места, в которых побывала — хоть и виртуально 🌍\n\nПосмотри, какая красота... 😍";
 
   const setB2State = (idx: number, state: PhotoState) => {
-    setB2States(prev => {
-      const next = [...prev];
-      next[idx] = state;
-      return next;
-    });
-  };
-
-  const setAllB2States = (state: PhotoState) => {
-    setB2States([state, state, state]);
+    setB2States(prev => { const next = [...prev]; next[idx] = state; return next; });
   };
 
   /* Запускаем блок 2 */
   const startBlock2 = () => {
-    // Блок 1 растворяется
     setShowBlock1Photo(false);
     setShowBlock1Card(false);
 
-    // Чуть позже показываем блок 2
     setTimeout(() => {
       setShowBlock2(true);
-      // Фото влетают по одному в ряд
-      setTimeout(() => setB2State(0, "row"), 200);
-      setTimeout(() => setB2State(1, "row"), 420);
-      setTimeout(() => setB2State(2, "row"), 640);
+      setShowCard2(true);
 
-      // Через 20с — сжимаются и улетают влево
-      setTimeout(() => setAllB2States("shrinking"), 20800);
+      // Через 10с открытка исчезает, появляются фото
       setTimeout(() => {
-        setAllB2States("parked");
-        setShowCard2(true);
-      }, 22000);
+        setShowCard2(false);
+        setTimeout(() => {
+          setB2PhotosVisible(true);
+          setTimeout(() => setB2State(0, "row"), 100);
+          setTimeout(() => setB2State(1, "row"), 320);
+          setTimeout(() => setB2State(2, "row"), 540);
+          setTimeout(() => setB2Done(true), 1800);
+        }, 600);
+      }, 10000);
     }, 600);
   };
 
@@ -361,8 +318,10 @@ export default function Index() {
     setShowBlock1Photo(false);
     setShowBlock1Card(false);
     setShowBlock2(false);
-    setAllB2States("hidden");
+    setB2States(["hidden","hidden","hidden"]);
     setShowCard2(false);
+    setB2PhotosVisible(false);
+    setB2Done(false);
     setConfetti(false);
     if (audioRef.current) {
       const audio = audioRef.current;
@@ -491,30 +450,18 @@ export default function Index() {
         </button>
       )}
 
-      {/* === БЛОК 2: 3 крупных фото + открытка === */}
+      {/* === БЛОК 2: открытка → фото → кнопка === */}
       {showBlock2 && (
-        <div className="b2-scene">
-          {/* 3 фото поверх экрана */}
-          {BLOCK2_PHOTOS.map((src, i) => (
-            <Block2Photo
-              key={i}
-              src={src}
-              index={i}
-              state={b2States[i]}
-              onClick={() => setLightboxSrc(src)}
-            />
-          ))}
-
-          {/* Открытка появляется по центру после улёта фото */}
-          <div
-            className="b2-card-center"
-            style={{
-              opacity: showCard2 ? 1 : 0,
-              transform: showCard2 ? "translate(-50%, -50%) scale(1)" : "translate(-50%, -50%) scale(0.6)",
-              transition: "all 1s cubic-bezier(0.34,1.2,0.64,1)",
-              transitionDelay: showCard2 ? "0.2s" : "0s",
-            }}
-          >
+        <div className="block2-scene">
+          {/* Открытка — появляется первой */}
+          <div className="b2-card-wrap" style={{
+            opacity: showCard2 ? 1 : 0,
+            transform: showCard2 ? "scale(1)" : "scale(0.7)",
+            transition: "all 0.9s cubic-bezier(0.34,1.2,0.64,1)",
+            pointerEvents: showCard2 ? "auto" : "none",
+            maxHeight: showCard2 ? "600px" : "0px",
+            marginBottom: showCard2 ? "0" : "0",
+          }}>
             <Postcard
               text={CARD2_TEXT}
               visible={showCard2}
@@ -525,6 +472,21 @@ export default function Index() {
               animFrom="center"
             />
           </div>
+
+          {/* Фото в ряд — появляются после открытки */}
+          {b2PhotosVisible && (
+            <div className="b2-row">
+              {BLOCK2_PHOTOS.map((src, i) => (
+                <Block2Photo
+                  key={i}
+                  src={src}
+                  index={i}
+                  state={b2States[i]}
+                  onClick={() => setLightboxSrc(src)}
+                />
+              ))}
+            </div>
+          )}
         </div>
       )}
 
@@ -536,8 +498,11 @@ export default function Index() {
             <span className="cta-label">Нажми на коробку</span>
           </div>
         </div>
-      ) : showCard2 ? (
-        <div className="mt-8 flex flex-col items-center gap-3" style={{ position: "relative", zIndex: 10 }}>
+      ) : b2Done ? (
+        <div className="mt-8 flex flex-col items-center gap-3">
+          <button className="next-btn" onClick={() => {}}>
+            Дальше 🌟
+          </button>
           <button className="reset-btn" onClick={handleReset}>
             <Icon name="RefreshCw" size={14} />
             Открыть снова
