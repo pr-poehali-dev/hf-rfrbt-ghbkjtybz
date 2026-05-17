@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { PhotoState } from "@/components/gift/GiftBox";
-import { MUSIC_BOX_URL, MUSIC_MAIN_URL, ALL_PHOTOS } from "@/gift/giftData";
+import { MUSIC_MAIN_URL, ALL_PHOTOS } from "@/gift/giftData";
 
 function playAudio(url: string, volume = 0.75): HTMLAudioElement {
   const audio = new Audio(url);
@@ -60,7 +60,6 @@ export function useGiftState() {
   const [paradeVisible, setParadeVisible] = useState<boolean[]>(Array(13).fill(false));
   const [showParadeCaption, setShowParadeCaption] = useState(false);
 
-  const boxAudioRef = useRef<HTMLAudioElement | null>(null);
   const mainAudioRef = useRef<HTMLAudioElement | null>(null);
 
   const setB2State = (idx: number, state: PhotoState) => {
@@ -124,38 +123,29 @@ export function useGiftState() {
     }, 10000);
   };
 
-  /* ── Открытие коробки ── */
+  /* ── Открытие коробки — сразу запускаем основной трек ── */
   const handleOpen = () => {
     if (opened) return;
     setOpened(true);
     setConfetti(true);
 
-    const boxAudio = playAudio(MUSIC_BOX_URL, 0.75);
-    boxAudio.loop = true;
-    boxAudioRef.current = boxAudio;
+    const mainAudio = playAudio(MUSIC_MAIN_URL, 0.75);
+    mainAudio.loop = true;
+    mainAudioRef.current = mainAudio;
+    mainAudio.addEventListener("play", () => setIsPlaying(true));
+    mainAudio.addEventListener("pause", () => setIsPlaying(false));
+    mainAudio.addEventListener("ended", () => setIsPlaying(false));
+    setIsPlaying(true);
 
     setTimeout(() => setShowBlock1Photo(true), 600);
     setTimeout(() => setShowBlock1Card(true), 1800);
     setTimeout(() => setConfetti(false), 3500);
   };
 
-  /* ── Переход в блок 2 — сменяем музыку ── */
+  /* ── Переход в блок 2 ── */
   const startBlock2 = () => {
     setShowBlock1Photo(false);
     setShowBlock1Card(false);
-
-    if (boxAudioRef.current) {
-      fadeOutAudio(boxAudioRef.current, () => { boxAudioRef.current = null; });
-    }
-    if (!mainAudioRef.current) {
-      const mainAudio = playAudio(MUSIC_MAIN_URL, 0.75);
-      mainAudio.loop = true;
-      mainAudioRef.current = mainAudio;
-      mainAudio.addEventListener("play", () => setIsPlaying(true));
-      mainAudio.addEventListener("pause", () => setIsPlaying(false));
-      mainAudio.addEventListener("ended", () => setIsPlaying(false));
-      setIsPlaying(true);
-    }
 
     setTimeout(() => {
       setShowBlock2(true);
@@ -216,7 +206,6 @@ export function useGiftState() {
     setParadeVisible(Array(13).fill(false));
     setShowParadeCaption(false);
     setConfetti(false);
-    if (boxAudioRef.current) { fadeOutAudio(boxAudioRef.current); boxAudioRef.current = null; }
     if (mainAudioRef.current) { fadeOutAudio(mainAudioRef.current); mainAudioRef.current = null; }
     setIsPlaying(false);
   };

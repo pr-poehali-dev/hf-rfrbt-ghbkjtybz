@@ -1,4 +1,3 @@
-export const MUSIC_BOX_URL = "https://cdn.poehali.dev/projects/d16ae21f-f210-4a6c-a55c-d3151bda89a5/bucket/d619524f-a4f6-4b7e-92e0-10dd8a79960d.mp3";
 export const MUSIC_MAIN_URL = "https://cdn.poehali.dev/projects/d16ae21f-f210-4a6c-a55c-d3151bda89a5/bucket/c827d397-b86e-4cf9-985c-7e7523a013d3.mp3";
 
 export const ALL_PHOTOS = [

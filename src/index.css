@@ -1591,3 +1591,130 @@
   transform: translateY(-1px);
   box-shadow: 0 6px 16px rgba(192, 33, 58, 0.4);
 }
+
+/* ═══════════════════════════════════════
+   МОБИЛЬНАЯ АДАПТАЦИЯ
+═══════════════════════════════════════ */
+@media (max-width: 600px) {
+  /* Заставка */
+  .box-stage {
+    padding: 8px 0 4px;
+    gap: 2px;
+  }
+
+  .gift-title {
+    font-size: 1.35rem;
+  }
+
+  .cta-label-big {
+    font-size: 1.45rem;
+  }
+
+  .round-box-scene {
+    width: 190px;
+    padding-top: 70px;
+  }
+
+  .round-body {
+    width: 190px;
+    height: 150px;
+  }
+
+  .round-lid {
+    width: 210px;
+    left: -10px;
+    bottom: 150px;
+  }
+
+  .lid-top-ellipse {
+    width: 210px;
+    height: 42px;
+  }
+
+  .lid-side {
+    width: 210px;
+    height: 22px;
+  }
+
+  /* Блок 1: фото + открытка стопкой */
+  .block1-scene {
+    flex-direction: column;
+    gap: 20px;
+    padding: 12px 12px 20px;
+  }
+
+  .block1-img {
+    width: min(85vw, 320px);
+    height: min(85vw, 320px);
+  }
+
+  /* Открытка */
+  .postcard {
+    width: min(92vw, 340px);
+    padding: 20px 16px 16px;
+  }
+
+  .postcard-text {
+    font-size: 1.05rem;
+    padding-right: 36px;
+  }
+
+  .postcard-stamp {
+    width: 36px;
+    height: 44px;
+    top: 12px;
+    right: 12px;
+  }
+
+  /* Блок 2-5: открытка */
+  .block2-scene {
+    gap: 20px;
+    padding: 8px 12px 20px;
+  }
+
+  /* Фото в ряд на мобиле — 1 колонка */
+  .b2-row {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .b2-photo {
+    width: min(88vw, 340px);
+  }
+
+  .b2-img {
+    width: min(88vw, 340px);
+    height: min(88vw, 340px);
+  }
+
+  /* Кнопки */
+  .next-btn {
+    font-size: 1.1rem;
+    padding: 10px 24px;
+    margin-top: 16px;
+  }
+
+  .reset-btn {
+    font-size: 0.95rem;
+    padding: 8px 20px;
+  }
+
+  /* Парад фото */
+  .parade-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .parade-caption {
+    font-size: 1.3rem;
+    padding: 14px 18px;
+  }
+
+  /* Музыкальная кнопка */
+  .music-btn {
+    top: 10px;
+    right: 10px;
+    width: 38px;
+    height: 38px;
+  }
+}
