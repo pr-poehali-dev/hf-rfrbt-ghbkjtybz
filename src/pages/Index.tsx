@@ -104,20 +104,40 @@ function RoundBox({ opened, onClick, onHover, shaking }: {
 }
 
 /* ── Postcard Component ── */
-function Postcard({ text, visible }: { text: string; visible: boolean }) {
+function Postcard({
+  text,
+  visible,
+  emoji = "❤️",
+  flowers = ["🌸","🌷","🌸"],
+  bgStyle,
+  rotate = -2,
+  animFrom = "right",
+}: {
+  text: string;
+  visible: boolean;
+  emoji?: string;
+  flowers?: string[];
+  bgStyle?: React.CSSProperties;
+  rotate?: number;
+  animFrom?: "right" | "center";
+}) {
+  const fromTransform = animFrom === "center"
+    ? `scale(0.6) rotate(${rotate}deg)`
+    : `translateX(80px) rotate(${rotate}deg)`;
+
   return (
     <div
       className="postcard-wrap"
       style={{
         opacity: visible ? 1 : 0,
-        transform: visible ? "translateX(0) rotate(-2deg)" : "translateX(80px) rotate(-2deg)",
+        transform: visible ? `rotate(${rotate}deg)` : fromTransform,
         transition: "all 0.9s cubic-bezier(0.34,1.2,0.64,1)",
-        transitionDelay: visible ? "0.5s" : "0s",
+        transitionDelay: visible ? "0.3s" : "0s",
       }}
     >
-      <div className="postcard">
+      <div className="postcard" style={bgStyle}>
         <div className="postcard-stamp">
-          <div className="postcard-stamp-inner">❤️</div>
+          <div className="postcard-stamp-inner">{emoji}</div>
         </div>
         <div className="postcard-lines">
           <div className="postcard-line" />
@@ -129,7 +149,7 @@ function Postcard({ text, visible }: { text: string; visible: boolean }) {
         <div className="postcard-corner bl" />
         <div className="postcard-corner br" />
         <div className="postcard-flowers">
-          <span>🌸</span><span>🌷</span><span>🌸</span>
+          {flowers.map((f, i) => <span key={i}>{f}</span>)}
         </div>
         <div className="postcard-text">{text}</div>
         <div className="postcard-footer">
@@ -142,24 +162,181 @@ function Postcard({ text, visible }: { text: string; visible: boolean }) {
   );
 }
 
+/* ── Block2Photo: одно фото для блока 2 ── */
+// Состояния: hidden → flying-in → big (20с) → shrink → parked-left
+type PhotoState = "hidden" | "flying-in" | "big" | "shrinking" | "parked";
+
+function Block2Photo({
+  src,
+  index,
+  state,
+  onClick,
+}: {
+  src: string;
+  index: number;
+  state: PhotoState;
+  onClick: () => void;
+}) {
+  // Позиции для финального "припаркованного" состояния слева
+  // 3 фото выстраиваются вертикально слева
+  const parkOffsets = [
+    { x: -42, y: -80 },
+    { x: -42, y: 0 },
+    { x: -42, y: 80 },
+  ];
+  const park = parkOffsets[index] ?? { x: -42, y: 0 };
+
+  const getStyle = (): React.CSSProperties => {
+    switch (state) {
+      case "hidden":
+        return {
+          opacity: 0,
+          transform: "translate(-50%, -50%) scale(0.05) rotate(360deg)",
+          transition: "none",
+          pointerEvents: "none",
+        };
+      case "flying-in":
+        return {
+          opacity: 1,
+          transform: "translate(-50%, -50%) scale(1) rotate(0deg)",
+          transition: "all 1.1s cubic-bezier(0.34,1.15,0.64,1)",
+          transitionDelay: `${index * 0.25}s`,
+          pointerEvents: "none",
+        };
+      case "big":
+        return {
+          opacity: 1,
+          transform: "translate(-50%, -50%) scale(1) rotate(0deg)",
+          transition: "all 0.5s ease",
+          pointerEvents: "auto",
+          cursor: "pointer",
+        };
+      case "shrinking":
+        return {
+          opacity: 1,
+          transform: `translate(calc(-50% + ${park.x}vw), calc(-50% + ${park.y}px)) scale(0.32) rotate(${index % 2 === 0 ? -4 : 4}deg)`,
+          transition: `all 0.85s cubic-bezier(0.4,0,0.6,1)`,
+          transitionDelay: `${index * 0.12}s`,
+          pointerEvents: "none",
+        };
+      case "parked":
+        return {
+          opacity: 1,
+          transform: `translate(calc(-50% + ${park.x}vw), calc(-50% + ${park.y}px)) scale(0.32) rotate(${index % 2 === 0 ? -4 : 4}deg)`,
+          transition: "all 0.3s ease",
+          pointerEvents: "none",
+        };
+    }
+  };
+
+  return (
+    <div
+      className="b2-photo"
+      style={getStyle()}
+      onClick={onClick}
+    >
+      <div className="photo-frame">
+        <div className="photo-frame-inner">
+          <img src={src} alt="" className="block1-img" draggable={false} />
+        </div>
+        <div className="photo-frame-corner tl" />
+        <div className="photo-frame-corner tr" />
+        <div className="photo-frame-corner bl" />
+        <div className="photo-frame-corner br" />
+      </div>
+    </div>
+  );
+}
+
+/* ── Lightbox ── */
+function Lightbox({ src, onClose }: { src: string; onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center lightbox-bg" onClick={onClose}>
+      <div className="lightbox-card" onClick={e => e.stopPropagation()}>
+        <img src={src} alt="" className="lightbox-img" />
+      </div>
+      <button className="lightbox-close" onClick={onClose}>
+        <Icon name="X" size={24} />
+      </button>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════
+   BLOCK 2 PHOTOS — данные
+═══════════════════════════════════════ */
+const BLOCK2_PHOTOS = [
+  "https://cdn.poehali.dev/projects/d16ae21f-f210-4a6c-a55c-d3151bda89a5/bucket/2cacdc00-8209-48d2-aae4-93480856df10.png",
+  "https://cdn.poehali.dev/projects/d16ae21f-f210-4a6c-a55c-d3151bda89a5/bucket/d1aae224-eee5-4b3c-bac6-b85e23190be6.png",
+  "https://cdn.poehali.dev/projects/d16ae21f-f210-4a6c-a55c-d3151bda89a5/bucket/ca78ace9-9e04-4b27-a1a1-e1aab682080c.png",
+];
+
+const CARD2_BG: React.CSSProperties = {
+  background: "radial-gradient(ellipse at 20% 80%, rgba(180,220,255,0.4) 0%, transparent 55%), radial-gradient(ellipse at 80% 20%, rgba(200,235,255,0.45) 0%, transparent 55%), linear-gradient(145deg, #f5fbff 0%, #eaf5ff 50%, #e0f0ff 100%)",
+  border: "1.5px solid rgba(120,180,230,0.4)",
+  boxShadow: "0 4px 32px rgba(80,150,220,0.13), 0 1px 4px rgba(0,0,0,0.07), inset 0 0 0 6px rgba(180,220,255,0.3)",
+};
+
+/* ═══════════════════════════════════════
+   MAIN
+═══════════════════════════════════════ */
 export default function Index() {
   const [opened, setOpened] = useState(false);
   const [confetti, setConfetti] = useState(false);
   const [shaking, setShaking] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
+
+  // Block 1
   const [showBlock1Photo, setShowBlock1Photo] = useState(false);
   const [showBlock1Card, setShowBlock1Card] = useState(false);
+  const [showBlock2, setShowBlock2] = useState(false);
+
+  // Block 2 photo states
+  const [b2States, setB2States] = useState<PhotoState[]>(["hidden","hidden","hidden"]);
+  const [showCard2, setShowCard2] = useState(false);
+
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const MUSIC_URL = "https://cdn.poehali.dev/projects/d16ae21f-f210-4a6c-a55c-d3151bda89a5/bucket/4ccf70ff-861f-4fd6-a45d-007aa1b6f91a.mp3";
 
-  const BLOCK1_PHOTO: PhotoItem = {
-    src: "https://cdn.poehali.dev/projects/d16ae21f-f210-4a6c-a55c-d3151bda89a5/bucket/d0891551-98a7-4554-924b-0e708a069193.png",
-    rotate: -2,
-    fileName: "galochka.png",
-  };
+  const BLOCK1_PHOTO = "https://cdn.poehali.dev/projects/d16ae21f-f210-4a6c-a55c-d3151bda89a5/bucket/d0891551-98a7-4554-924b-0e708a069193.png";
 
   const CARD1_TEXT = "Дорогая наша Галочка! 💛\n\nОт всей души поздравляем тебя с днём рождения! Оставайся всегда такой же милой, красивой и доброй ❤️\n\nТаких как ты — очень мало на нашей планете 🌸\n\nМы знаем, что ты очень хотела путешествовать, и поэтому...";
+
+  const CARD2_TEXT = "Мы решили подарить тебе путешествие ✈️\n\nТы будешь смотреть на эти фото и, закрыв глаза, представлять себе эти места, в которых побывала — хоть и виртуально 🌍\n\nПосмотри, какая красота... 😍";
+
+  const setB2State = (idx: number, state: PhotoState) => {
+    setB2States(prev => {
+      const next = [...prev];
+      next[idx] = state;
+      return next;
+    });
+  };
+
+  const setAllB2States = (state: PhotoState) => {
+    setB2States([state, state, state]);
+  };
+
+  /* Запускаем блок 2 */
+  const startBlock2 = () => {
+    setShowBlock2(true);
+
+    // Фото влетают по одному
+    setTimeout(() => setB2State(0, "flying-in"), 300);
+    setTimeout(() => setB2State(1, "flying-in"), 550);
+    setTimeout(() => setB2State(2, "flying-in"), 800);
+
+    // Через 1.5с все три висят крупно (состояние big)
+    setTimeout(() => setAllB2States("big"), 1800);
+
+    // Через 20с — сжимаются и улетают влево
+    setTimeout(() => setAllB2States("shrinking"), 21800);
+    setTimeout(() => {
+      setAllB2States("parked");
+      setShowCard2(true);
+    }, 23000);
+  };
 
   const handleOpen = () => {
     if (opened) return;
@@ -187,6 +364,9 @@ export default function Index() {
     setOpened(false);
     setShowBlock1Photo(false);
     setShowBlock1Card(false);
+    setShowBlock2(false);
+    setAllB2States("hidden");
+    setShowCard2(false);
     setConfetti(false);
     if (audioRef.current) {
       const audio = audioRef.current;
@@ -209,6 +389,8 @@ export default function Index() {
       setIsPlaying(true);
     }
   };
+
+  const isBlock1Done = showBlock1Photo && showBlock1Card;
 
   return (
     <div className="gift-bg min-h-screen flex flex-col items-center justify-center overflow-hidden relative py-8">
@@ -270,9 +452,9 @@ export default function Index() {
         {opened ? "С любовью, для тебя 💛" : "Нажми, чтобы открыть подарок"}
       </p>
 
-      {/* === КОРОБКА (показываем пока не открыли) === */}
+      {/* === КОРОБКА === */}
       {!opened && (
-        <div className="box-anchor" style={{ transform: "translateX(-50%)" }}>
+        <div style={{ position: "relative" }}>
           <RoundBox opened={false} onClick={handleOpen} onHover={handleHover} shaking={shaking} />
         </div>
       )}
@@ -280,18 +462,10 @@ export default function Index() {
       {/* === БЛОК 1: Фото + Открытка === */}
       {opened && (
         <div className="block1-scene">
-          {/* Фото с анимацией вращения */}
-          <div
-            className={`block1-photo${showBlock1Photo ? " block1-photo--visible" : ""}`}
-          >
+          <div className={`block1-photo${showBlock1Photo ? " block1-photo--visible" : ""}`}>
             <div className="photo-frame">
               <div className="photo-frame-inner">
-                <img
-                  src={BLOCK1_PHOTO.src}
-                  alt="Галочка"
-                  className="block1-img"
-                  draggable={false}
-                />
+                <img src={BLOCK1_PHOTO} alt="Галочка" className="block1-img" draggable={false} />
               </div>
               <div className="photo-frame-corner tl" />
               <div className="photo-frame-corner tr" />
@@ -300,8 +474,55 @@ export default function Index() {
             </div>
           </div>
 
-          {/* Открытка */}
-          <Postcard text={CARD1_TEXT} visible={showBlock1Card} />
+          <Postcard
+            text={CARD1_TEXT}
+            visible={showBlock1Card}
+            animFrom="right"
+          />
+        </div>
+      )}
+
+      {/* Кнопка "Дальше" после блока 1 */}
+      {isBlock1Done && !showBlock2 && (
+        <button className="next-btn" onClick={startBlock2}>
+          Дальше ✈️
+        </button>
+      )}
+
+      {/* === БЛОК 2: 3 крупных фото + открытка === */}
+      {showBlock2 && (
+        <div className="b2-scene">
+          {/* 3 фото поверх экрана */}
+          {BLOCK2_PHOTOS.map((src, i) => (
+            <Block2Photo
+              key={i}
+              src={src}
+              index={i}
+              state={b2States[i]}
+              onClick={() => setLightboxSrc(src)}
+            />
+          ))}
+
+          {/* Открытка появляется по центру после улёта фото */}
+          <div
+            className="b2-card-center"
+            style={{
+              opacity: showCard2 ? 1 : 0,
+              transform: showCard2 ? "translate(-50%, -50%) scale(1)" : "translate(-50%, -50%) scale(0.6)",
+              transition: "all 1s cubic-bezier(0.34,1.2,0.64,1)",
+              transitionDelay: showCard2 ? "0.2s" : "0s",
+            }}
+          >
+            <Postcard
+              text={CARD2_TEXT}
+              visible={showCard2}
+              emoji="✈️"
+              flowers={["🌍","🗺️","✈️"]}
+              bgStyle={CARD2_BG}
+              rotate={2}
+              animFrom="center"
+            />
+          </div>
         </div>
       )}
 
@@ -313,14 +534,17 @@ export default function Index() {
             <span className="cta-label">Нажми на коробку</span>
           </div>
         </div>
-      ) : showBlock1Card ? (
-        <div className="mt-8 flex flex-col items-center gap-3">
+      ) : showCard2 ? (
+        <div className="mt-8 flex flex-col items-center gap-3" style={{ position: "relative", zIndex: 10 }}>
           <button className="reset-btn" onClick={handleReset}>
             <Icon name="RefreshCw" size={14} />
             Открыть снова
           </button>
         </div>
       ) : null}
+
+      {/* Lightbox */}
+      {lightboxSrc && <Lightbox src={lightboxSrc} onClose={() => setLightboxSrc(null)} />}
     </div>
   );
 }
