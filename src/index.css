@@ -137,6 +137,8 @@
 .round-box-scene {
   position: relative;
   width: 240px;
+  /* резервируем место для крышки которая торчит вверх */
+  padding-top: 90px;
   /* perspective for 3-D */
   perspective: 900px;
   transform-style: preserve-3d;
@@ -1290,7 +1292,8 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0;
+  gap: 4px;
+  padding: 16px 0 8px;
 }
 
 .cta-label-big {
