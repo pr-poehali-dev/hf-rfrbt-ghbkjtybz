@@ -8,9 +8,26 @@ import { RoundBox, Postcard, Block2Photo, Lightbox, PhotoState } from "@/compone
    ДАННЫЕ
 ═══════════════════════════════════════ */
 // Музыка для заставки с коробкой
-const MUSIC_BOX_URL = "https://cdn.poehali.dev/projects/d16ae21f-f210-4a6c-a55c-d3151bda89a5/bucket/4ccf70ff-861f-4fd6-a45d-007aa1b6f91a.mp3";
-// Музыка для блоков с фото (запускается с блока 1)
+const MUSIC_BOX_URL = "https://cdn.poehali.dev/projects/d16ae21f-f210-4a6c-a55c-d3151bda89a5/bucket/d619524f-a4f6-4b7e-92e0-10dd8a79960d.mp3";
+// Музыка для блоков с фото (запускается при переходе в блок 1)
 const MUSIC_MAIN_URL = "https://cdn.poehali.dev/projects/d16ae21f-f210-4a6c-a55c-d3151bda89a5/bucket/c827d397-b86e-4cf9-985c-7e7523a013d3.mp3";
+
+// Все фото для финального парада (блок 1 + все блоки)
+const ALL_PHOTOS = [
+  { src: "https://cdn.poehali.dev/projects/d16ae21f-f210-4a6c-a55c-d3151bda89a5/bucket/d0891551-98a7-4554-924b-0e708a069193.png", fileName: "photo_01.png" },
+  { src: "https://cdn.poehali.dev/projects/d16ae21f-f210-4a6c-a55c-d3151bda89a5/bucket/2cacdc00-8209-48d2-aae4-93480856df10.png", fileName: "photo_02.png" },
+  { src: "https://cdn.poehali.dev/projects/d16ae21f-f210-4a6c-a55c-d3151bda89a5/bucket/d1aae224-eee5-4b3c-bac6-b85e23190be6.png", fileName: "photo_03.png" },
+  { src: "https://cdn.poehali.dev/projects/d16ae21f-f210-4a6c-a55c-d3151bda89a5/bucket/ca78ace9-9e04-4b27-a1a1-e1aab682080c.png", fileName: "photo_04.png" },
+  { src: "https://cdn.poehali.dev/projects/d16ae21f-f210-4a6c-a55c-d3151bda89a5/bucket/ac6b2938-a5b0-4ec2-a28b-56496fa1ecd2.png", fileName: "photo_05.png" },
+  { src: "https://cdn.poehali.dev/projects/d16ae21f-f210-4a6c-a55c-d3151bda89a5/bucket/a1ef9396-49a4-462b-9a55-5081fe506fb2.png", fileName: "photo_06.png" },
+  { src: "https://cdn.poehali.dev/projects/d16ae21f-f210-4a6c-a55c-d3151bda89a5/bucket/198f6d3b-9bbd-4002-a85d-9eceecfc7d08.png", fileName: "photo_07.png" },
+  { src: "https://cdn.poehali.dev/projects/d16ae21f-f210-4a6c-a55c-d3151bda89a5/bucket/ae472781-5344-4f32-a72e-3d48f5818177.png", fileName: "photo_08.png" },
+  { src: "https://cdn.poehali.dev/projects/d16ae21f-f210-4a6c-a55c-d3151bda89a5/bucket/b459a7de-7b38-4b87-b617-42403a067fee.png", fileName: "photo_09.png" },
+  { src: "https://cdn.poehali.dev/projects/d16ae21f-f210-4a6c-a55c-d3151bda89a5/bucket/31ab7dbd-339a-45ec-b409-59f6c2b23ab8.png", fileName: "photo_10.png" },
+  { src: "https://cdn.poehali.dev/projects/d16ae21f-f210-4a6c-a55c-d3151bda89a5/bucket/157dae5f-663d-49f6-99da-ae9109042d7b.png", fileName: "photo_11.png" },
+  { src: "https://cdn.poehali.dev/projects/d16ae21f-f210-4a6c-a55c-d3151bda89a5/bucket/47f74a95-2082-421c-b355-e55715933354.png", fileName: "photo_12.png" },
+  { src: "https://cdn.poehali.dev/projects/d16ae21f-f210-4a6c-a55c-d3151bda89a5/bucket/0f029686-3f6c-4743-a8e7-bfd6bd515dd2.png", fileName: "photo_13.png" },
+];
 
 const BLOCK1_PHOTO = "https://cdn.poehali.dev/projects/d16ae21f-f210-4a6c-a55c-d3151bda89a5/bucket/d0891551-98a7-4554-924b-0e708a069193.png";
 
@@ -129,9 +146,14 @@ export default function Index() {
   const [b5PhotosVisible, setB5PhotosVisible] = useState(false);
   const [b5Done, setB5Done] = useState(false);
 
+  // Финальный парад
+  const [showParade, setShowParade] = useState(false);
+  const [paradeVisible, setParadeVisible] = useState<boolean[]>(Array(13).fill(false));
+  const [showParadeCaption, setShowParadeCaption] = useState(false);
+
   const boxAudioRef = useRef<HTMLAudioElement | null>(null);
   const mainAudioRef = useRef<HTMLAudioElement | null>(null);
-  const audioRef = mainAudioRef; // алиас для кнопки паузы
+  const audioRef = mainAudioRef;
 
   const setB2State = (idx: number, state: PhotoState) => {
     setB2States(prev => { const next = [...prev]; next[idx] = state; return next; });
@@ -228,18 +250,61 @@ export default function Index() {
     setOpened(true);
     setConfetti(true);
 
-    // Запускаем музыку коробки (если была)
-    // Сразу запускаем основную музыку для фото-блоков
-    const mainAudio = playAudio(MUSIC_MAIN_URL, 0.75);
-    mainAudio.loop = true;
-    mainAudioRef.current = mainAudio;
-    mainAudio.addEventListener("play", () => setIsPlaying(true));
-    mainAudio.addEventListener("pause", () => setIsPlaying(false));
-    mainAudio.addEventListener("ended", () => setIsPlaying(false));
+    // Запускаем музыку заставки (коробка)
+    const boxAudio = playAudio(MUSIC_BOX_URL, 0.75);
+    boxAudio.loop = true;
+    boxAudioRef.current = boxAudio;
 
     setTimeout(() => setShowBlock1Photo(true), 600);
     setTimeout(() => setShowBlock1Card(true), 1800);
     setTimeout(() => setConfetti(false), 3500);
+  };
+
+  /* ── Переход в блок 1 — сменяем музыку ── */
+  const startBlock2 = () => {
+    setShowBlock1Photo(false);
+    setShowBlock1Card(false);
+
+    // Плавно гасим музыку коробки и запускаем основную
+    if (boxAudioRef.current) {
+      fadeOutAudio(boxAudioRef.current, () => { boxAudioRef.current = null; });
+    }
+    if (!mainAudioRef.current) {
+      const mainAudio = playAudio(MUSIC_MAIN_URL, 0.75);
+      mainAudio.loop = true;
+      mainAudioRef.current = mainAudio;
+      mainAudio.addEventListener("play", () => setIsPlaying(true));
+      mainAudio.addEventListener("pause", () => setIsPlaying(false));
+      mainAudio.addEventListener("ended", () => setIsPlaying(false));
+      setIsPlaying(true);
+    }
+
+    setTimeout(() => {
+      setShowBlock2(true);
+      setShowCard2(true);
+      setTimeout(() => {
+        setShowCard2(false);
+        setTimeout(() => {
+          setB2PhotosVisible(true);
+          setTimeout(() => setB2State(0, "row"), 100);
+          setTimeout(() => setB2State(1, "row"), 320);
+          setTimeout(() => setB2State(2, "row"), 540);
+          setTimeout(() => setB2Done(true), 1800);
+        }, 600);
+      }, 10000);
+    }, 600);
+  };
+
+  /* ── Запуск финального парада ── */
+  const startParade = () => {
+    setShowParade(true);
+    ALL_PHOTOS.forEach((_, i) => {
+      setTimeout(() => {
+        setParadeVisible(prev => { const next = [...prev]; next[i] = true; return next; });
+      }, i * 250);
+    });
+    // Надпись появляется после последнего фото
+    setTimeout(() => setShowParadeCaption(true), ALL_PHOTOS.length * 250 + 600);
   };
 
   const handleHover = () => {
@@ -270,6 +335,9 @@ export default function Index() {
     setShowCard5(false);
     setB5PhotosVisible(false);
     setB5Done(false);
+    setShowParade(false);
+    setParadeVisible(Array(13).fill(false));
+    setShowParadeCaption(false);
     setConfetti(false);
     if (boxAudioRef.current) { fadeOutAudio(boxAudioRef.current); boxAudioRef.current = null; }
     if (mainAudioRef.current) { fadeOutAudio(mainAudioRef.current); mainAudioRef.current = null; }
@@ -304,16 +372,22 @@ export default function Index() {
         </button>
       )}
 
-      {/* Title */}
-      <p className="gift-title mb-6 text-center px-4">
-        {opened ? "С любовью, для тебя 💛" : "Нажми, чтобы открыть подарок"}
-      </p>
-
-      {/* === КОРОБКА === */}
+      {/* === ЗАСТАВКА: надпись сверху, коробка, надпись снизу === */}
       {!opened && (
-        <div style={{ position: "relative" }}>
-          <RoundBox opened={false} onClick={handleOpen} onHover={handleHover} shaking={shaking} />
+        <div className="box-stage">
+          <p className="gift-title text-center px-4">
+            Нажми, чтобы открыть подарок
+          </p>
+          <div style={{ position: "relative", marginTop: 8, marginBottom: 8 }}>
+            <RoundBox opened={false} onClick={handleOpen} onHover={handleHover} shaking={shaking} />
+          </div>
+          <p className="cta-label-big">👆 Нажми на коробку</p>
         </div>
+      )}
+
+      {/* Title после открытия */}
+      {opened && (
+        <p className="gift-title mb-6 text-center px-4">С любовью, для тебя 💛</p>
       )}
 
       {/* === БЛОК 1: Фото + Открытка === */}
@@ -432,8 +506,8 @@ export default function Index() {
         </div>
       )}
 
-      {/* === БЛОК 5: открытка → фото → финал === */}
-      {showBlock5 && (
+      {/* === БЛОК 5: открытка → фото === */}
+      {showBlock5 && !showParade && (
         <div className="block2-scene">
           <div className="b2-card-wrap" style={{
             opacity: showCard5 ? 1 : 0,
@@ -455,15 +529,60 @@ export default function Index() {
         </div>
       )}
 
-      {/* Controls */}
-      {!opened ? (
-        <div className="mt-6 flex flex-col items-center gap-3">
-          <div className="cta-bounce flex flex-col items-center gap-1">
-            <Icon name="ChevronUp" size={20} style={{ color: "var(--gold)" }} />
-            <span className="cta-label">Нажми на коробку</span>
+      {/* Кнопка "Финальный парад" после блока 5 */}
+      {b5Done && !showParade && (
+        <div className="mt-8 flex flex-col items-center gap-3">
+          <button className="next-btn" onClick={startParade}>Все фото вместе 🎉</button>
+        </div>
+      )}
+
+      {/* === ФИНАЛЬНЫЙ ПАРАД === */}
+      {showParade && (
+        <div className="parade-scene">
+          <div className="parade-grid">
+            {ALL_PHOTOS.map((photo, i) => (
+              <div
+                key={i}
+                className="parade-item"
+                style={{
+                  opacity: paradeVisible[i] ? 1 : 0,
+                  transform: paradeVisible[i] ? "scale(1) translateY(0)" : "scale(0.7) translateY(20px)",
+                  transition: "all 0.6s cubic-bezier(0.34,1.2,0.64,1)",
+                }}
+              >
+                <div className="parade-photo-wrap">
+                  <img src={photo.src} alt="" className="parade-img" draggable={false} onClick={() => setLightboxSrc(photo.src)} />
+                  <a
+                    className="parade-download-btn"
+                    href={photo.src}
+                    download={photo.fileName}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    <Icon name="Download" size={13} />
+                    Скачать
+                  </a>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Финальная надпись */}
+          <div
+            className="parade-caption"
+            style={{
+              opacity: showParadeCaption ? 1 : 0,
+              transform: showParadeCaption ? "translateY(0) scale(1)" : "translateY(16px) scale(0.92)",
+              transition: "all 1s cubic-bezier(0.34,1.2,0.64,1)",
+            }}
+          >
+            С любовью от нас, в твой День рождения! 💛❤️🌸
           </div>
         </div>
-      ) : b5Done ? (
+      )}
+
+      {/* Controls */}
+      {showParadeCaption ? (
         <div className="mt-8 flex flex-col items-center gap-3">
           <button className="reset-btn" onClick={handleReset}>
             <Icon name="RefreshCw" size={14} />
