@@ -1,20 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import Icon from "@/components/ui/icon";
 
-const ROTATIONS = [-7, 5, -4, 8, -3, 6, -5, 9, -6, 4];
-
-const DEFAULT_PHOTOS = [
-  { src: "https://cdn.poehali.dev/projects/d16ae21f-f210-4a6c-a55c-d3151bda89a5/bucket/b5e09914-3a46-4307-bc5c-374a8632e876.png", rotate: 0, fileName: "photo9.png" },
-  { src: "https://cdn.poehali.dev/projects/d16ae21f-f210-4a6c-a55c-d3151bda89a5/bucket/de5def99-c182-4d3f-80e6-57183ef4d148.jpg", rotate: -7, fileName: "photo1.jpg" },
-  { src: "https://cdn.poehali.dev/projects/d16ae21f-f210-4a6c-a55c-d3151bda89a5/bucket/2ea0a8dd-4812-4fda-b4f0-5ca0e041582e.jpg", rotate: 5, fileName: "photo2.jpg" },
-  { src: "https://cdn.poehali.dev/projects/d16ae21f-f210-4a6c-a55c-d3151bda89a5/bucket/da567b94-ce61-402c-a212-167db2b9366e.jpg", rotate: -4, fileName: "photo3.jpg" },
-  { src: "https://cdn.poehali.dev/projects/d16ae21f-f210-4a6c-a55c-d3151bda89a5/bucket/433bf212-c395-4f31-9399-81c279560e9c.jpg", rotate: 8, fileName: "photo4.jpg" },
-  { src: "https://cdn.poehali.dev/projects/d16ae21f-f210-4a6c-a55c-d3151bda89a5/bucket/2a98fe9f-d6f2-4b11-a4cc-d9f7d9e9357e.jpg", rotate: -3, fileName: "photo5.jpg" },
-  { src: "https://cdn.poehali.dev/projects/d16ae21f-f210-4a6c-a55c-d3151bda89a5/bucket/b76ef4e0-8005-465a-8ffc-b1e70634f560.jpg", rotate: 6, fileName: "photo6.jpg" },
-  { src: "https://cdn.poehali.dev/projects/d16ae21f-f210-4a6c-a55c-d3151bda89a5/bucket/6d7b8cca-3fae-4f39-bac8-2d18460c24c4.jpg", rotate: -5, fileName: "photo7.jpg" },
-  { src: "https://cdn.poehali.dev/projects/d16ae21f-f210-4a6c-a55c-d3151bda89a5/bucket/40272bd3-65c1-4413-b4d8-ffe4b8284889.jpg", rotate: 9, fileName: "photo8.jpg" },
-];
-
 interface PhotoItem {
   src: string;
   rotate: number;
@@ -117,42 +103,69 @@ function RoundBox({ opened, onClick, onHover, shaking }: {
   );
 }
 
-/* ── Fan positions for up to 10 photos ── */
-function getFanPositions(count: number) {
-  const positions = [];
-  const spread = Math.min(260, 40 * count);
-  for (let i = 0; i < count; i++) {
-    const t = count === 1 ? 0.5 : i / (count - 1);
-    const x = (t - 0.5) * spread;
-    // arc: center photo highest, edges lower
-    const arc = -Math.pow((t - 0.5) * 2, 2) * 40;
-    const y = -170 + arc;
-    positions.push({ x, y });
-  }
-  return positions;
+/* ── Postcard Component ── */
+function Postcard({ text, visible }: { text: string; visible: boolean }) {
+  return (
+    <div
+      className="postcard-wrap"
+      style={{
+        opacity: visible ? 1 : 0,
+        transform: visible ? "translateX(0) rotate(-2deg)" : "translateX(80px) rotate(-2deg)",
+        transition: "all 0.9s cubic-bezier(0.34,1.2,0.64,1)",
+        transitionDelay: visible ? "0.5s" : "0s",
+      }}
+    >
+      <div className="postcard">
+        <div className="postcard-stamp">
+          <div className="postcard-stamp-inner">❤️</div>
+        </div>
+        <div className="postcard-lines">
+          <div className="postcard-line" />
+          <div className="postcard-line" />
+          <div className="postcard-line short" />
+        </div>
+        <div className="postcard-corner tl" />
+        <div className="postcard-corner tr" />
+        <div className="postcard-corner bl" />
+        <div className="postcard-corner br" />
+        <div className="postcard-flowers">
+          <span>🌸</span><span>🌷</span><span>🌸</span>
+        </div>
+        <div className="postcard-text">{text}</div>
+        <div className="postcard-footer">
+          <span>✨</span>
+          <div className="postcard-divider" />
+          <span>✨</span>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default function Index() {
-  const isEditMode = new URLSearchParams(window.location.search).get("edit") === "true";
-
-  const [photos, setPhotos] = useState<PhotoItem[]>(DEFAULT_PHOTOS);
   const [opened, setOpened] = useState(false);
-  const [visiblePhotos, setVisiblePhotos] = useState<number[]>([]);
   const [confetti, setConfetti] = useState(false);
-  const [selectedPhoto, setSelectedPhoto] = useState<number | null>(null);
   const [shaking, setShaking] = useState(false);
-  const [showUpload, setShowUpload] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [boxHidden, setBoxHidden] = useState(false);
+  const [showBlock1Photo, setShowBlock1Photo] = useState(false);
+  const [showBlock1Card, setShowBlock1Card] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const MUSIC_URL = "https://cdn.poehali.dev/projects/d16ae21f-f210-4a6c-a55c-d3151bda89a5/bucket/4ccf70ff-861f-4fd6-a45d-007aa1b6f91a.mp3";
 
+  const BLOCK1_PHOTO: PhotoItem = {
+    src: "https://cdn.poehali.dev/projects/d16ae21f-f210-4a6c-a55c-d3151bda89a5/bucket/d0891551-98a7-4554-924b-0e708a069193.png",
+    rotate: -2,
+    fileName: "galochka.png",
+  };
+
+  const CARD1_TEXT = "Дорогая наша Галочка! 💛\n\nОт всей души поздравляем тебя с днём рождения! Оставайся всегда такой же милой, красивой и доброй ❤️\n\nТаких как ты — очень мало на нашей планете 🌸\n\nМы знаем, что ты очень хотела путешествовать, и поэтому...";
+
   const handleOpen = () => {
     if (opened) return;
-    setOpened(true); setShowUpload(false); setConfetti(true);
-    // play music
+    setOpened(true);
+    setConfetti(true);
+
     if (MUSIC_URL) {
       const audio = new Audio(MUSIC_URL);
       audio.volume = 0.75;
@@ -160,13 +173,9 @@ export default function Index() {
       audio.play().then(() => setIsPlaying(true)).catch(() => {});
       audio.onended = () => setIsPlaying(false);
     }
-    // Первое фото — крупное, по центру
-    setTimeout(() => setVisiblePhotos([0]), 350);
-    // Через 5 сек — коробка и первое фото исчезают ОДНОВРЕМЕННО, сразу вылетают остальные
-    setTimeout(() => setBoxHidden(true), 5000);
-    photos.slice(1).forEach((_, i) => {
-      setTimeout(() => setVisiblePhotos((prev) => [...prev, i + 1]), 5000 + i * 200);
-    });
+
+    setTimeout(() => setShowBlock1Photo(true), 600);
+    setTimeout(() => setShowBlock1Card(true), 1800);
     setTimeout(() => setConfetti(false), 3500);
   };
 
@@ -175,7 +184,10 @@ export default function Index() {
   };
 
   const handleReset = () => {
-    setOpened(false); setVisiblePhotos([]); setSelectedPhoto(null); setConfetti(false); setBoxHidden(false);
+    setOpened(false);
+    setShowBlock1Photo(false);
+    setShowBlock1Card(false);
+    setConfetti(false);
     if (audioRef.current) {
       const audio = audioRef.current;
       const fadeOut = setInterval(() => {
@@ -185,36 +197,6 @@ export default function Index() {
       audioRef.current = null;
     }
     setIsPlaying(false);
-  };
-
-  const handleFiles = (files: FileList | null) => {
-    if (!files) return;
-    const newPhotos: PhotoItem[] = [];
-    Array.from(files).slice(0, 10).forEach((file, i) => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        newPhotos.push({
-          src: e.target?.result as string,
-          rotate: ROTATIONS[i % ROTATIONS.length],
-          fileName: file.name,
-        });
-        if (newPhotos.length === Math.min(files.length, 10)) {
-          setPhotos(newPhotos);
-        }
-      };
-      reader.readAsDataURL(file);
-    });
-  };
-
-  const handleDownload = (photo: PhotoItem) => {
-    if (photo.src.startsWith("data:")) {
-      const a = document.createElement("a");
-      a.href = photo.src;
-      a.download = photo.fileName || "photo.jpg";
-      document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    } else {
-      window.open(photo.src, "_blank");
-    }
   };
 
   const handleToggleMusic = () => {
@@ -228,14 +210,11 @@ export default function Index() {
     }
   };
 
-  // Позиции для фото 1-9 (без первого) когда коробка исчезла
-  const fanPositions = getFanPositions(photos.length - 1);
-
   return (
     <div className="gift-bg min-h-screen flex flex-col items-center justify-center overflow-hidden relative py-8">
       <Confetti active={confetti} />
 
-      {/* Gold glitters — плавающие блёстки и сердечки */}
+      {/* Gold glitters */}
       <div className="glitter-field">
         {Array.from({ length: 50 }).map((_, i) => {
           const isHeart = i % 4 === 0;
@@ -272,7 +251,7 @@ export default function Index() {
         ))}
       </div>
 
-      {/* Music control — появляется после открытия */}
+      {/* Music control */}
       {opened && (
         <button className="music-btn" onClick={handleToggleMusic} title={isPlaying ? "Пауза" : "Играть"}>
           <span className={`music-icon${isPlaying ? " music-playing" : ""}`}>
@@ -291,101 +270,40 @@ export default function Index() {
         {opened ? "С любовью, для тебя 💛" : "Нажми, чтобы открыть подарок"}
       </p>
 
-      {/* Upload panel — только в режиме редактирования */}
-      {isEditMode && !opened && showUpload && (
-        <div className="mb-5 animate-in" style={{ width: "min(360px, 92vw)" }}>
-          <div className="upload-zone">
-            <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden"
-              onChange={(e) => handleFiles(e.target.files)} />
-            {/* Preview grid */}
-            {photos.length > 0 && (
-              <div className="upload-grid mb-3">
-                {photos.map((p, i) => (
-                  <div key={i} className="upload-slot" style={{ position: "relative" }}>
-                    <img src={p.src} alt="" className="upload-preview" />
-                    <button className="upload-remove" onClick={() => {
-                      const next = photos.filter((_, idx) => idx !== i);
-                      setPhotos(next.length > 0 ? next : DEFAULT_PHOTOS);
-                    }}>
-                      <Icon name="X" size={9} />
-                    </button>
-                  </div>
-                ))}
-                {photos.length < 10 && (
-                  <div className="upload-slot upload-add" onClick={() => fileInputRef.current?.click()}>
-                    <div className="upload-empty">
-                      <Icon name="Plus" size={22} style={{ color: "var(--gold)" }} />
-                      <span>Добавить</span>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-            <button className="upload-btn" onClick={() => fileInputRef.current?.click()}>
-              <Icon name="ImagePlus" size={14} />
-              {photos === DEFAULT_PHOTOS ? "Выбрать свои фото" : "Добавить ещё"}
-            </button>
-            <p className="upload-hint mt-2">До 10 фотографий</p>
-          </div>
+      {/* === КОРОБКА (показываем пока не открыли) === */}
+      {!opened && (
+        <div className="box-anchor" style={{ transform: "translateX(-50%)" }}>
+          <RoundBox opened={false} onClick={handleOpen} onHover={handleHover} shaking={shaking} />
         </div>
       )}
 
-      {/* Scene */}
-      <div className={`scene-wrap${boxHidden ? " scene-expanded" : ""}`}>
-
-        {/* Первое фото — крупная заставка по центру */}
-        {visiblePhotos.includes(0) && (
+      {/* === БЛОК 1: Фото + Открытка === */}
+      {opened && (
+        <div className="block1-scene">
+          {/* Фото с анимацией вращения */}
           <div
-            className="photo-hero"
-            style={{
-              opacity: boxHidden ? 0 : 1,
-              transform: boxHidden ? "translate(-50%, -50%) scale(0.3)" : "translate(-50%, -50%) scale(1)",
-              transition: "all 0.6s cubic-bezier(0.34,1.2,0.64,1)",
-              pointerEvents: boxHidden ? "none" : "auto",
-            }}
-            onClick={() => !boxHidden && setSelectedPhoto(0)}
+            className={`block1-photo${showBlock1Photo ? " block1-photo--visible" : ""}`}
           >
-            <div className="polaroid">
-              <img src={photos[0].src} alt="" className="polaroid-img" draggable={false} />
+            <div className="photo-frame">
+              <div className="photo-frame-inner">
+                <img
+                  src={BLOCK1_PHOTO.src}
+                  alt="Галочка"
+                  className="block1-img"
+                  draggable={false}
+                />
+              </div>
+              <div className="photo-frame-corner tl" />
+              <div className="photo-frame-corner tr" />
+              <div className="photo-frame-corner bl" />
+              <div className="photo-frame-corner br" />
             </div>
           </div>
-        )}
 
-        {/* Остальные фото — веер после исчезновения коробки */}
-        {photos.slice(1).map((photo, i) => {
-          const isVisible = visiblePhotos.includes(i + 1);
-          const pos = fanPositions[i] ?? { x: 0, y: -150 };
-          return (
-            <div key={i + 1} className="photo-fly"
-              style={{
-                transform: isVisible
-                  ? `translate(calc(-50% + ${pos.x}px), calc(-50% + ${pos.y}px)) rotate(${photo.rotate}deg) scale(1)`
-                  : `translate(-50%, -50%) rotate(0deg) scale(0.08)`,
-                opacity: isVisible ? 1 : 0,
-                transition: "all 0.72s cubic-bezier(0.34,1.56,0.64,1)",
-                transitionDelay: `${i * 0.12}s`,
-                zIndex: 30 + i,
-                cursor: isVisible ? "pointer" : "default",
-              }}
-              onClick={() => isVisible && setSelectedPhoto(i + 1)}
-            >
-              <div className="polaroid">
-                <img src={photo.src} alt="" className="polaroid-img" draggable={false} />
-              </div>
-            </div>
-          );
-        })}
-
-        {/* Box — исчезает через 5 сек */}
-        <div className="box-anchor" style={{
-          opacity: boxHidden ? 0 : 1,
-          transform: `translateX(-50%) ${boxHidden ? "scale(0.7) translateY(30px)" : "scale(1)"}`,
-          transition: "all 0.7s cubic-bezier(0.4,0,0.2,1)",
-          pointerEvents: boxHidden ? "none" : "auto",
-        }}>
-          <RoundBox opened={opened} onClick={handleOpen} onHover={handleHover} shaking={shaking} />
+          {/* Открытка */}
+          <Postcard text={CARD1_TEXT} visible={showBlock1Card} />
         </div>
-      </div>
+      )}
 
       {/* Controls */}
       {!opened ? (
@@ -394,49 +312,15 @@ export default function Index() {
             <Icon name="ChevronUp" size={20} style={{ color: "var(--gold)" }} />
             <span className="cta-label">Нажми на коробку</span>
           </div>
-          {isEditMode && (
-            <button className="edit-btn" onClick={() => setShowUpload(v => !v)}>
-              <Icon name={showUpload ? "ChevronUp" : "ImagePlus"} size={14} />
-              {showUpload ? "Скрыть" : "Добавить свои фото"}
-            </button>
-          )}
         </div>
-      ) : visiblePhotos.length === photos.length ? (
-        <div className="mt-6 flex flex-col items-center gap-3">
-          <p className="upload-hint text-center">Нажми на фото, чтобы посмотреть или скачать</p>
+      ) : showBlock1Card ? (
+        <div className="mt-8 flex flex-col items-center gap-3">
           <button className="reset-btn" onClick={handleReset}>
             <Icon name="RefreshCw" size={14} />
             Открыть снова
           </button>
         </div>
       ) : null}
-
-      {/* Lightbox */}
-      {selectedPhoto !== null && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center lightbox-bg"
-          onClick={() => setSelectedPhoto(null)}>
-          <div className="lightbox-card"
-            style={{ rotate: `${photos[selectedPhoto].rotate * 0.4}deg` }}
-            onClick={(e) => e.stopPropagation()}>
-            <img src={photos[selectedPhoto].src} alt="" className="lightbox-img" />
-            <div className="lightbox-footer">
-              <button className="lightbox-nav" onClick={(e) => { e.stopPropagation(); setSelectedPhoto((selectedPhoto - 1 + photos.length) % photos.length); }}>
-                <Icon name="ChevronLeft" size={18} />
-              </button>
-              <button className="lightbox-download" onClick={() => handleDownload(photos[selectedPhoto])}>
-                <Icon name="Download" size={15} />
-                Скачать
-              </button>
-              <button className="lightbox-nav" onClick={(e) => { e.stopPropagation(); setSelectedPhoto((selectedPhoto + 1) % photos.length); }}>
-                <Icon name="ChevronRight" size={18} />
-              </button>
-            </div>
-          </div>
-          <button className="lightbox-close" onClick={() => setSelectedPhoto(null)}>
-            <Icon name="X" size={24} />
-          </button>
-        </div>
-      )}
     </div>
   );
 }
