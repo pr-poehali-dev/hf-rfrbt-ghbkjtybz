@@ -171,28 +171,6 @@ export default function Index() {
     setB5States(prev => { const next = [...prev]; next[idx] = state; return next; });
   };
 
-  /* ── Запуск блока 2 ── */
-  const startBlock2 = () => {
-    setShowBlock1Photo(false);
-    setShowBlock1Card(false);
-
-    setTimeout(() => {
-      setShowBlock2(true);
-      setShowCard2(true);
-
-      setTimeout(() => {
-        setShowCard2(false);
-        setTimeout(() => {
-          setB2PhotosVisible(true);
-          setTimeout(() => setB2State(0, "row"), 100);
-          setTimeout(() => setB2State(1, "row"), 320);
-          setTimeout(() => setB2State(2, "row"), 540);
-          setTimeout(() => setB2Done(true), 1800);
-        }, 600);
-      }, 10000);
-    }, 600);
-  };
-
   /* ── Запуск блока 3 ── */
   const startBlock3 = () => {
     setShowBlock3(true);
