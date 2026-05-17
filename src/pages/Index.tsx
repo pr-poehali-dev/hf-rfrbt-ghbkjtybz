@@ -33,7 +33,7 @@ const CARD2_TEXT = "Мы решили подарить тебе путешест
 const CARD3_TEXT = "Но самая красивая на этих фото — это ты и твоя улыбка! 😊\n\nХотим, чтобы ты так улыбалась чаще ❤️\n\nНо это ещё не всё...";
 
 const BLOCK4_PHOTOS = [
-  "https://cdn.poehali.dev/projects/d16ae21f-f210-4a6c-a55c-d3151bda89a5/bucket/ca78ace9-9e04-4b27-a1a1-e1aab682080c.png",
+  "https://cdn.poehali.dev/projects/d16ae21f-f210-4a6c-a55c-d3151bda89a5/bucket/ae472781-5344-4f32-a72e-3d48f5818177.png",
   "https://cdn.poehali.dev/projects/d16ae21f-f210-4a6c-a55c-d3151bda89a5/bucket/b459a7de-7b38-4b87-b617-42403a067fee.png",
   "https://cdn.poehali.dev/projects/d16ae21f-f210-4a6c-a55c-d3151bda89a5/bucket/31ab7dbd-339a-45ec-b409-59f6c2b23ab8.png",
 ];
